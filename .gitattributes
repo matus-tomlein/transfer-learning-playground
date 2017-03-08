@@ -1,0 +1,4 @@
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+matus-home/all* filter=lfs diff=lfs merge=lfs -text
+ESC-50/samples.csv filter=lfs diff=lfs merge=lfs -text
