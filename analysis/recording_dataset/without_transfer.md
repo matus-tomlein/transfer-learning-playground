@@ -1,5 +1,5 @@
-Classification of recordings transfer
-=====================================
+Classification of recordings on a single domain
+===============================================
 
 1. split a single dataset to 70/30
 2. train and test using random forest
