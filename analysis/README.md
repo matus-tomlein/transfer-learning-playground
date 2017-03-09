@@ -14,3 +14,4 @@ Analysis of transfer learning experiments
 
 * [Matus kitchen dataset](matus_kitchen_dataset/README.md)
 * [Recording dataset](recording_dataset/README.md)
+* [Dataset collected using Mites at SynergyLabs kitchen](synergy_kitchen_mites/README.md)
