@@ -8,14 +8,13 @@ devices = ['Sink', 'Corner', 'Coffee', 'Table']
 features = ['Accelerometer', 'Microphone', 'Magnetometer']
 classifiers = ['Random Forest', 'SVM', 'Decision Tree', 'Gaussian Naive Bayes']
 
-df = pd.DataFrame.from_csv('results_transfer.csv', index_col=None)
+df = pd.DataFrame.from_csv('results_no_transfer.csv', index_col=None)
 
-df['source_name'] = [devices[i] for i in df['source']]
-df['target_name'] = [devices[i] for i in df['target']]
+df['device_name'] = [devices[i] for i in df['device']]
 df['clf_name'] = [classifiers[i] for i in df['clf']]
 df['feature_name'] = [features[i] for i in df['feature']]
 
-df['group'] = df['source_name'] + ' > ' + df['target_name']
+df['group'] = df['device_name']
 df['graph'] = df['clf_name'] + ' – ' + df['feature_name']
 
 for graph in df.graph.unique():
