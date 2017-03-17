@@ -1,0 +1,58 @@
+{
+  "features": [
+    "ACCEL_sst_*",
+    "MICROPHONE_sst_*",
+    "MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*",
+    "ACCEL_sst_*|MAGNETOMETER_sst_*",
+    "MICROPHONE_sst_*|MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*"
+  ],
+
+  "feature_names": [
+    "Accelerometer",
+    "Microphone",
+    "Magnetometer",
+    "Accelerometer & microphone",
+    "Accelerometer & magnetometer",
+    "Microphone & magnetometer",
+    "Accelerometer & microphone & magnetometer"
+  ],
+
+  "classifiers": [
+    "RandomForestClassifier",
+    "SVC",
+    "DecisionTreeClassifier",
+    "GaussianNB"
+  ],
+
+  "classifier_names": [
+    "Random Forest",
+    "SVM",
+    "Decision Tree",
+    "Gaussian Naive Bayes"
+  ],
+
+  "devices": [
+    "128.237.246.127",
+    "128.237.248.186",
+    "128.237.253.157",
+    "128.237.242.0"
+  ],
+
+  "device_roles": {
+    "synergy-mites-kitchen": {
+      "128.237.246.127": "Sink",
+      "128.237.248.186": "Corner",
+      "128.237.253.157": "Coffee",
+      "128.237.242.0": "Table"
+    },
+
+    "synergy-mites-colocated": {
+      "128.237.246.127": "Table U",
+      "128.237.248.186": "Sink U",
+      "128.237.253.157": "Sink D",
+      "128.237.242.0": "Table D"
+    }
+  }
+}

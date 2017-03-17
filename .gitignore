@@ -1,10 +1,5 @@
 # Datasets
-datasets/ESC-50
-datasets/matus-home
-datasets/movement
-datasets/recordings
-datasets/synergy-kitchen-mites
-datasets/synergy-kitchen-mites-processed
+datasets/**/
 
 # Logs
 logs
