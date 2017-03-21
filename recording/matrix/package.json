@@ -1,0 +1,17 @@
+{
+  "name": "matrix_collector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mic": "^2.1.1",
+    "mqtt": "^2.5.0",
+    "protobufjs": "5.0.2",
+    "zmq": "^2.15.3"
+  }
+}
