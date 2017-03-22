@@ -5,8 +5,9 @@ from sklearn import svm
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.preprocessing import StandardScaler
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn import tree
+from sklearn.linear_model import LogisticRegression
 
 from ml.impute_inf import ImputeInf
 
@@ -15,11 +16,17 @@ def classifier_by_name(clf_name):
     if clf_name == 'RandomForestClassifier':
         clf = RandomForestClassifier()
     elif clf_name == 'SVC':
-        clf = svm.SVC()
+        clf = svm.SVC(kernel='linear', decision_function_shape='ovr')
+    elif clf_name == 'LinearSVC':
+        clf = svm.LinearSVC()
     elif clf_name == 'GaussianNB':
         clf = GaussianNB()
+    elif clf_name == 'BernoulliNB':
+        clf = BernoulliNB()
     elif clf_name == 'DecisionTreeClassifier':
         clf = tree.DecisionTreeClassifier()
+    elif clf_name == 'LogisticRegression':
+        clf = LogisticRegression()
 
     return clf
 

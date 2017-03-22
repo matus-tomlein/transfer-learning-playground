@@ -1,27 +1,10 @@
 const readline = require('readline');
+const getDateString = require('./helpers/getDateString');
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
-
-function padToTwo(number) {
-  if (number<=99) { number = ('00'+number).slice(-2); }
-  return number;
-}
-
-function getDateString() {
-  let date = new Date();
-  let dateStr = [
-    [date.getUTCFullYear(), padToTwo(date.getUTCMonth() + 1), padToTwo(date.getUTCDate())].join('-'),
-    [
-      [padToTwo(date.getUTCHours()), padToTwo(date.getUTCMinutes()), padToTwo(date.getUTCSeconds())].join(':'),
-      date.getUTCMilliseconds()
-    ].join('.')
-  ].join(' ');
-
-  return dateStr;
-}
-
 
 const fs = require('fs');
 const settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));

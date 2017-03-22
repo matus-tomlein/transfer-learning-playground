@@ -11,7 +11,7 @@ dataset_path = '../datasets/synergy-mites-colocated-features/'
 output_file = '/'.join([
     'synergy-mites-colocated',
     'results',
-    'results_transfer_no_feature_selection.csv'
+    'results_transfer.csv'
 ])
 
 devices = [
@@ -24,11 +24,18 @@ devices = [
 features = [
     "ACCEL_sst_*",
     "MICROPHONE_sst_*",
-    "ACCEL_sst_*|MICROPHONE_sst_*"
+    "MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*",
+    "ACCEL_sst_*|MAGNETOMETER_sst_*",
+    "MICROPHONE_sst_*|MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*"
 ]
 
 classifiers = [
-    'RandomForestClassifier'
+    'RandomForestClassifier',
+    'BernoulliNB',
+    'SVC',
+    'LogisticRegression'
 ]
 
 
@@ -49,6 +56,14 @@ def test(source, target, use_features, clf_name):
 
 with open('configuration.json') as f:
     configuration = json.load(f)
+
+headers = [
+    'source', 'target', 'feature', 'clf', 'accuracy'
+]
+headers += [str(i) for i in range(60)]
+with open(output_file, "w") as f:
+    f.write(','.join(headers) + "\n")
+
 
 for repeat in range(20):
     for source in devices:

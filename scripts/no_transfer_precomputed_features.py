@@ -24,11 +24,18 @@ devices = [
 features = [
     "ACCEL_sst_*",
     "MICROPHONE_sst_*",
-    "ACCEL_sst_*|MICROPHONE_sst_*"
+    "MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*",
+    "ACCEL_sst_*|MAGNETOMETER_sst_*",
+    "MICROPHONE_sst_*|MAGNETOMETER_sst_*",
+    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*"
 ]
 
 classifiers = [
-    'RandomForestClassifier'
+    'RandomForestClassifier',
+    'BernoulliNB',
+    'SVC',
+    'LogisticRegression'
 ]
 
 
@@ -48,6 +55,14 @@ def test(device, use_features, clf_name):
 
 with open('configuration.json') as f:
     configuration = json.load(f)
+
+headers = [
+    'device', 'feature', 'clf', 'accuracy'
+]
+headers += [str(i) for i in range(60)]
+with open(output_file, "w") as f:
+    f.write(','.join(headers) + "\n")
+
 
 for repeat in range(20):
     for device in devices:

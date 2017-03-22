@@ -1,4 +1,24 @@
 {
+  "activities": {
+    "synergy-mites-kitchen": [
+      "Dishes",
+      "Microwave",
+      "Coffee",
+      "Null",
+      "Faucet",
+      "Kettle"
+    ],
+
+    "synergy-mites-colocated": [
+      "Dishes",
+      "Microwave",
+      "Coffee",
+      "Null",
+      "Faucet",
+      "Kettle"
+    ]
+  },
+
   "features": [
     "ACCEL_sst_*",
     "MICROPHONE_sst_*",
@@ -10,27 +30,33 @@
   ],
 
   "feature_names": [
-    "Accelerometer",
-    "Microphone",
-    "Magnetometer",
-    "Accelerometer & microphone",
-    "Accelerometer & magnetometer",
-    "Microphone & magnetometer",
-    "Accelerometer & microphone & magnetometer"
+    "Accel",
+    "Mic",
+    "Magnet",
+    "Accel & mic",
+    "Accel & magnet",
+    "Mic & magnet",
+    "Accel & mic & magnet"
   ],
 
   "classifiers": [
     "RandomForestClassifier",
     "SVC",
     "DecisionTreeClassifier",
-    "GaussianNB"
+    "GaussianNB",
+    "LinearSVC",
+    "LogisticRegression",
+    "BernoulliNB"
   ],
 
   "classifier_names": [
     "Random Forest",
-    "SVM",
+    "SVM (linear kernel)",
     "Decision Tree",
-    "Gaussian Naive Bayes"
+    "Gaussian Naive Bayes",
+    "Linear SVM",
+    "Logistic Regression",
+    "Bernoulli Naive Bayes"
   ],
 
   "devices": [

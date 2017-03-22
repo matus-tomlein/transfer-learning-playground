@@ -9,8 +9,13 @@
   "author": "Matus Tomlein",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.1.5",
     "csv-stringify": "^1.0.4",
+    "mqtt": "^2.5.0",
+    "noble": "^1.8.0",
+    "node-thunderboard-react": "0.0.4",
     "sensortag": "^1.2.3",
+    "thunderboard-ble": "^0.1.2",
     "underscore": "^1.8.3",
     "wemo-client": "^0.11.2"
   }

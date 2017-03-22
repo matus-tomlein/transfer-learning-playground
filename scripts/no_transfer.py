@@ -14,6 +14,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import tree
 
 dataset_path = '../datasets/synergy-kitchen-mites-processed/'
+output_file = 'results_no_transfer.csv'
 
 
 def train_test_split(df, df_labels):
@@ -86,15 +87,26 @@ devices = [
 features = [
     "ACCEL_sst_*|id",
     "MICROPHONE_sst_*|id",
-    "MAGNETOMETER_sst_*|id"
+    "MAGNETOMETER_sst_*|id",
+    "ACCEL_sst_*|MICROPHONE_sst_*|id",
+    "ACCEL_sst_*|MAGNETOMETER_sst_*|id",
+    "MICROPHONE_sst_*|MAGNETOMETER_sst_*|id",
+    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*|id"
 ]
 
 classifiers = [
     'RandomForestClassifier',
+    'BernoulliNB',
     'SVC',
-    'DecisionTreeClassifier',
-    'GaussianNB'
+    'LogisticRegression'
 ]
+
+headers = [
+    'device', 'feature', 'clf', 'accuracy'
+]
+headers += [str(i) for i in range(60)]
+with open(output_file, "w") as f:
+    f.write(','.join(headers) + "\n")
 
 for repeat in range(20):
     for device_i in range(len(devices)):
@@ -112,5 +124,5 @@ for repeat in range(20):
                 ] + report
                 report = [str(i) for i in report]
 
-                with open("results_no_transfer.csv", "a") as f:
+                with open(output_file, "a") as f:
                     f.write(','.join(report) + "\n")
