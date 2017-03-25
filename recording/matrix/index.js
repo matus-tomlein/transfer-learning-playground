@@ -17,7 +17,7 @@ function start(deviceId) {
       client.publish('sensors', JSON.stringify(data));
     };
   
-    humidity(sendData);
+    //humidity(sendData);
     imu(sendData);
     pressure(sendData);
     // uv(sendData);
