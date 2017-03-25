@@ -5,20 +5,31 @@ var humidity = require('./humidity'),
 
     mqtt = require('mqtt');
 
-var deviceId = 'matrix_1';
+function start(deviceId) {
+  
+  client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
+  client.on('connect', function () {
+  
+    var sendData = function (data) {
+      var time = new Date().getTime();
+      data.device = deviceId;
+      data.time = time;
+      client.publish('sensors', JSON.stringify(data));
+    };
+  
+    humidity(sendData);
+    imu(sendData);
+    pressure(sendData);
+    // uv(sendData);
+  });
 
-client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
-client.on('connect', function () {
+}
 
-  var sendData = function (data) {
-    let time = new Date().getTime();
-    data.device = deviceId;
-    data.time = time;
-    client.publish('sensors', JSON.stringify(data));
-  };
+require('getmac').getMac(function (err, macAddress) {
+  if (err) { console.log(err); return; }
 
-  humidity(sendData);
-  imu(sendData);
-  pressure(sendData);
-  // uv(sendData);
+  var deviceId = 'Matrix ' + macAddress.split(':').join('');
+  console.log('Device ID:', deviceId);
+
+  start(deviceId);
 });
