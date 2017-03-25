@@ -3,8 +3,11 @@ function padToTwo(number) {
   return number;
 }
 
-function getDateString() {
+function getDateString(time) {
   let date = new Date();
+  if (time) {
+    date = new Date(time);
+  }
   let dateStr = [
     [date.getUTCFullYear(), padToTwo(date.getUTCMonth() + 1), padToTwo(date.getUTCDate())].join('-'),
     [

@@ -18,7 +18,7 @@ to_numpy_dtype = {
     protocol.SensorDataType.FLOAT: 'f4',
 }
 
-with open('settings.json') as data_file:    
+with open('settings.json') as data_file:
     settings = json.load(data_file)
 
 

@@ -1,5 +1,6 @@
 const mqtt = require('mqtt'),
-      _ = require('underscore');
+      _ = require('underscore'),
+      ws = require("nodejs-websocket");
 
 const fs = require('fs');
 const getDateString = require('./helpers/getDateString');
@@ -14,10 +15,12 @@ client.on('connect', () => {
 let writtenToFiles = {};
 let devicesOnline = {};
 
-client.on('message', (topic, message) => {
+function processMessage(data) {
   let receivedAt = getDateString();
+  if (data.time) {
+    data.time = getDateString(data.time);
+  }
 
-  let data = JSON.parse(message.toString());
   devicesOnline[data.device] = true;
 
   let keys = Object.keys(data);
@@ -57,7 +60,23 @@ client.on('message', (topic, message) => {
       }
     });
   }
+}
+
+client.on('message', (topic, message) => {
+  let data = JSON.parse(message.toString());
+  processMessage(data);
 });
+
+ws.createServer(function (conn) {
+  conn.on('text', function (str) {
+    processMessage(JSON.parse(str));
+  });
+  conn.on('close', function (code, reason) {
+    console.log('Connection closed');
+  });
+}).listen(8001);
+
+console.log('Listening on MQTT and WS port 8001');
 
 setInterval(() => {
   console.log('Online:', Object.keys(devicesOnline).join(', '));

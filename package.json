@@ -14,6 +14,7 @@
     "mqtt": "^2.5.0",
     "noble": "^1.8.0",
     "node-thunderboard-react": "0.0.4",
+    "nodejs-websocket": "^1.7.1",
     "sensortag": "^1.2.3",
     "thunderboard-ble": "^0.1.2",
     "underscore": "^1.8.3",
