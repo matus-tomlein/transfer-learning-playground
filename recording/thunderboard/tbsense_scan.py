@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 from bluepy.btle import *
 import struct
-from time import sleep
+from time import sleep, time
 from tbsense import Thunderboard
 import threading
 import json
@@ -13,7 +13,10 @@ class Reporter:
 
 
     def report(self, device, values):
+        t = int(time() * 1000)
         values['device'] = device
+        values['time'] = t
+
         content = json.dumps(values)
         #print(content)
         self.client.publish('sensors', content)
