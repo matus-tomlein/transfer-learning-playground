@@ -10,6 +10,7 @@
 
 var mic = require('mic');
 var fs = require('fs');
+var stats = require('stats-lite');
 
 
 // This is how we connect to the creator. IP and port.
@@ -57,64 +58,40 @@ function setupMicarray() {
 
 setupMicarray()
 
+module.exports = function (callback) {
+  var spawn = require('child_process').spawn;
+  
+  var device = 'mic_channel8';
+  var rate = '5500';
+  var channels = '1';
+  var format = 'S16_LE';
+  
+  var recording = spawn('arecord', ['-r', rate, '-c', channels, '-f', format, '-D', device]);
+  var stream = recording.stdout;
+  
+  var readValues = [];
+  
+  stream.on('readable', function() {
+    while ((chunk = stream.read(2)) != null) {
+      var value = chunk.readInt16LE();
+      readValues.push(parseInt(value));
+    }
+  });
+  
+  setInterval(function () {
+    var v = readValues;
+    readValues = [];
+    if (v.length == 0) { return; }
 
-//
-// ALSA recorder
-//
-// mic_channel8 is a beamformed channel using the delay and sum method
-var micInstance = mic({ 'device':'mic_channel8','rate': '16000', 'channels': '1', 'debug': true, 'exitOnSilence': 6 });
-var micInputStream = micInstance.getAudioStream();
-var outputFileStream = fs.WriteStream('output.wav');
+    var report = {};
+    report.microphone_min = Math.min.apply(null, v);
+    report.microphone_max = Math.max.apply(null, v);
+    report.microphone_sum = stats.sum(v);
+    report.microphone_avg = stats.mean(v);
+    report.microphone_variance = stats.variance(v);
+    report.microphone_range = report.microphone_max - report.microphone_min;
+    report.microphone_centroid = stats.median(v);
 
-micInputStream.pipe(outputFileStream);
-
-micInputStream.on('data', function(data) {
-    console.log("Recieved Input Stream: " + data.length);
-});
-
-
-micInputStream.on('error', function(err) {
-    cosole.log("Error in Input Stream: " + err);
-});
-
-
-micInputStream.on('startComplete', function() {
-        console.log("Got SIGNAL startComplete");
-        setTimeout(function() {
-                micInstance.pause();
-            }, 5000);
-    });
-
-
-micInputStream.on('stopComplete', function() {
-        console.log("Got SIGNAL stopComplete");
-    });
-
-
-micInputStream.on('pauseComplete', function() {
-        console.log("Got SIGNAL pauseComplete");
-        setTimeout(function() {
-                micInstance.resume();
-            }, 5000);
-    });
-
-
-micInputStream.on('resumeComplete', function() {
-        console.log("Got SIGNAL resumeComplete");
-        setTimeout(function() {
-                micInstance.stop();
-            }, 5000);
-    });
-
-
-micInputStream.on('silence', function() {
-        console.log("Got SIGNAL silence");
-    });
-
-
-micInputStream.on('processExitComplete', function() {
-        console.log("Got SIGNAL processExitComplete");
-    });
-
-
-micInstance.start();
+    callback(report);
+  }, 100);
+};

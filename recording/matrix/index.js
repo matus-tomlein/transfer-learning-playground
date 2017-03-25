@@ -1,6 +1,7 @@
 var humidity = require('./humidity'),
     imu = require('./imu'),
     pressure = require('./pressure'),
+    microphone = require('./microphone'),
     // uv = require('./uv'),
 
     mqtt = require('mqtt');
@@ -20,6 +21,7 @@ function start(deviceId) {
     //humidity(sendData);
     imu(sendData);
     pressure(sendData);
+    microphone(sendData);
     // uv(sendData);
   });
 
