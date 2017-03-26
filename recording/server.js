@@ -7,7 +7,7 @@ const getDateString = require('./helpers/getDateString');
 const settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));
 const folderPath = settings.save_to_folder;
 
-let client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
+let client = mqtt.connect('mqtt://transferlearning.andrew.cmu.edu');
 client.on('connect', () => {
   client.subscribe('sensors');
 });

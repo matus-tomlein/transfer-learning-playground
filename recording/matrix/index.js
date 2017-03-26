@@ -8,7 +8,7 @@ var humidity = require('./humidity'),
 
 function start(deviceId) {
   
-  client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
+  client = mqtt.connect('mqtt://transferlearning.andrew.cmu.edu');
   client.on('connect', function () {
   
     var sendData = function (data) {

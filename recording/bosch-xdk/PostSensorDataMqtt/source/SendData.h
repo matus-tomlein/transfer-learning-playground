@@ -45,7 +45,7 @@ typedef enum returnTypes_e
 #define PERIOD             10
 
 #define	MQTT_CLIENT_ID	    "xdk1"            /**< MQTT Client ID */
-#define MQTT_BROKER_NAME    "matus.wv.cc.cmu.edu"  /**< MQTT Broker */
+#define MQTT_BROKER_NAME    "transferlearning.andrew.cmu.edu"  /**< MQTT Broker */
 #define MQTT_PORT           1883                          /**< MQTT Port Number */
 
 #define CLIENT_YIELD_TIMEOUT              10
@@ -77,7 +77,7 @@ typedef enum returnTypes_e
 #define TOPIC_DATA_STREAM        "sensors"
 
 #define	MQTT_CLIENT_ID	    "xdk1"            /**< MQTT Client ID */
-#define MQTT_BROKER_NAME    "matus.wv.cc.cmu.edu"  /**< MQTT Broker */
+#define MQTT_BROKER_NAME    "transferlearning.andrew.cmu.edu"  /**< MQTT Broker */
 #define MQTT_PORT           1883                          /**< MQTT Port Number */
 
 

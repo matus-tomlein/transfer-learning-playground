@@ -64,7 +64,7 @@ String.prototype.hashCode = function() {
 
 
   function initMqtt() {
-    var connection = new WebSocket('ws://matus.wv.cc.cmu.edu:8001');
+    var connection = new WebSocket('ws://transferlearning.andrew.cmu.edu:8001');
 
     connection.onopen = function () {
       app.connection = connection;
