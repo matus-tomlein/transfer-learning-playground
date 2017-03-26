@@ -248,7 +248,8 @@ static returnTypes_t bsdUdpClient()
 {
 	sensorStreamBuffer.length += sprintf(
 				sensorStreamBuffer.data + sensorStreamBuffer.length,
-				"{\"device\":\"matrix_1\",\"accel_x\":%ld,\"accel_y\":%ld,\"accel_z\":%ld,\"gyro_x\":%ld,\"gyro_y\":%ld,\"gyro_z\":%ld,\"magnet_x\":%ld,\"magnet_y\":%ld,\"magnet_z\":%ld,\"light_lux\":%.3f,\"temp_c\":%.3f,\"press_p\":%ld,\"humidity\":%ld,\"noise\":%ld}",
+				"{\"device\":\"%s\",\"accel_x\":%ld,\"accel_y\":%ld,\"accel_z\":%ld,\"gyro_x\":%ld,\"gyro_y\":%ld,\"gyro_z\":%ld,\"mag_x\":%ld,\"mag_y\":%ld,\"mag_z\":%ld,\"light\":%.3f,\"temperature\":%.3f,\"pressure\":%ld,\"humidity\":%ld,\"microphone\":%ld}",
+				MQTT_CLIENT_ID,
 				accelData.xAxisData,
 				accelData.yAxisData,
 				accelData.zAxisData,
