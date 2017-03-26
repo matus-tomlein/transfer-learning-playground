@@ -43,11 +43,15 @@ class CsvWriter:
 
     def write_values(self, values):
         if not self.written_header:
+            stat_names = ['min', 'max', 'sum', 'avg', 'variance', 'range', 'centroid']
             self.written_header = True
             headers = ['']
             for i in range(len(values)):
                 for n in range(len(values[i])):
-                    headers.append(self.sensor_name + self.feature_name + '_' + str(i) + '_' + str(n))
+                    stat = str(n)
+                    if self.feature_name == '_sst':
+                        stat = stat_names[n]
+                    headers.append(self.sensor_name + self.feature_name + '_' + str(i) + '_' + stat)
             self.write(','.join(headers))
 
         items = [str(item) for sublist in values for item in sublist]

@@ -1,159 +1,175 @@
-const SensorTag = require('sensortag');
+const SensorTag = require('sensortag'),
+      mqtt = require('mqtt');
 
-let samplingPeriod = 100;
-let numberOfExpectedTags = 4; // won't start writing data until all are connected
-let tags = 0;
 
-let data = {
-  tags: [],
-  readings: [],
-  activities: []
-};
+function getTime() { return new Date().getTime(); }
 
-function getTime() {
-  return new Date().getTime() / 1000;
+function hashCode(str) {
+  var hash = 0, i, chr, len;
+  if (str.length === 0) return hash;
+  for (i = 0, len = str.length; i < len; i++) {
+    chr   = str.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
 }
 
-function addReading(time, tag, sensor, value) {
-  if (tags == numberOfExpectedTags) {
+
+class SensorTagReader {
+  constructor(client) {
+    this.client = client;
+    this.samplingPeriod = 100;
+  }
+
+  addReading(time, tag, sensor, value) {
+    let id = Math.abs(hashCode(tag.id) % 1000);
+    let data = { time: time, device: 'TI SensorTag ' + id };
     if (value.x) {
-      console.log(tag.id, time, sensor + '_x', value.x);
-      console.log(tag.id, time, sensor + '_y', value.y);
-      console.log(tag.id, time, sensor + '_z', value.z);
+      for (let key in value) {
+        data[sensor + '_' + key] = value[key];
+      }
     } else {
-      console.log(tag.id, time, sensor, value);
+      data[sensor] = value;
     }
+    client.publish('sensors', JSON.stringify(data));
+  }
+
+  setUpHumidityListeners(tag) {
+    tag.enableHumidity((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyHumidity((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setHumidityPeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('humidityChange', (temperature, humidity) => {
+            let time = getTime();
+            this.addReading(time, tag, 'temperature', temperature);
+            this.addReading(time, tag, 'humidity', humidity);
+          });
+        });
+      });
+    });
+  }
+
+  setUpPressureListeners(tag) {
+    tag.enableBarometricPressure((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyBarometricPressure((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setBarometricPressurePeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('barometricPressureChange', (pressure) => {
+            let time = getTime();
+            this.addReading(time, tag, 'pressure', pressure);
+          });
+        });
+      });
+    });
+  }
+
+  setUpLuxometerListeners(tag) {
+    tag.enableLuxometer((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyLuxometer((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setLuxometerPeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('luxometerChange', (lux) => {
+            let time = getTime();
+            this.addReading(time, tag, 'light', lux);
+          });
+        });
+      });
+    });
+  }
+
+  setUpGyroListeners(tag) {
+    tag.enableGyroscope((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyGyroscope((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setGyroscopePeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('gyroscopeChange', (x, y, z) => {
+            let time = getTime();
+            this.addReading(time, tag, 'gyro', { x: x, y: y, z: z });
+          });
+        });
+      });
+    });
+  }
+
+  setUpAccelerometerListeners(tag) {
+    tag.enableAccelerometer((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyAccelerometer((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setAccelerometerPeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('accelerometerChange', (x, y, z) => {
+            let time = getTime();
+            this.addReading(time, tag, 'accel', { x: x, y: y, z: z });
+          });
+        });
+      });
+    });
+  }
+
+  setUpMagnetomerListeners(tag) {
+    tag.enableMagnetometer((err) => {
+      if (err) { console.error(err); return; }
+
+      tag.notifyMagnetometer((err) => {
+        if (err) { console.error(err); return; }
+
+        tag.setMagnetometerPeriod(this.samplingPeriod, (err) => {
+          if (err) { console.error(err); return; }
+
+          tag.on('magnetometerChange', (x, y, z) => {
+            let time = getTime();
+            this.addReading(time, tag, 'mag', { x: x, y: y, z: z });
+          });
+        });
+      });
+    });
+  }
+
+  start() {
+    SensorTag.discoverAll((tag) => {
+      tag.connectAndSetUp((err) => {
+        if (err) { console.error(err); return; }
+        console.log('Found tag with id', tag.id);
+
+        // this.setUpHumidityListeners(tag);
+        // this.setUpPressureListeners(tag);
+        // this.setUpLuxometerListeners(tag);
+        this.setUpGyroListeners(tag);
+        this.setUpAccelerometerListeners(tag);
+        this.setUpMagnetomerListeners(tag);
+      });
+    });
   }
 }
 
-function setUpHumidityListeners(tag) {
-  tag.enableHumidity(function (err) {
-    if (err) { console.error(err); return; }
 
-    tag.notifyHumidity(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setHumidityPeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('humidityChange', function (temperature, humidity) {
-          let time = getTime();
-          addReading(time, tag, 'temperature', temperature);
-          addReading(time, tag, 'humidity', humidity);
-        });
-      });
-    });
-  });
-}
-
-function setUpPressureListeners(tag) {
-  tag.enableBarometricPressure(function (err) {
-    if (err) { console.error(err); return; }
-
-    tag.notifyBarometricPressure(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setBarometricPressurePeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('barometricPressureChange', function (pressure) {
-          let time = getTime();
-          addReading(time, tag, 'pressure', pressure);
-        });
-      });
-    });
-  });
-}
-
-function setUpLuxometerListeners(tag) {
-  tag.enableLuxometer(function (err) {
-    if (err) { console.error(err); return; }
-
-    tag.notifyLuxometer(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setLuxometerPeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('luxometerChange', function (lux) {
-          let time = getTime();
-          addReading(time, tag, 'luxometer', lux);
-        });
-      });
-    });
-  });
-}
-
-function setUpGyroListeners(tag) {
-  tag.enableGyroscope(function (err) {
-    if (err) { console.error(err); return; }
-
-    tag.notifyGyroscope(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setGyroscopePeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('gyroscopeChange', function (x, y, z) {
-          let time = getTime();
-          addReading(time, tag, 'gyroscope', { x: x, y: y, z: z });
-        });
-      });
-    });
-  });
-}
-
-function setUpAccelerometerListeners(tag) {
-  tag.enableAccelerometer(function (err) {
-    if (err) { console.error(err); return; }
-
-    tag.notifyAccelerometer(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setAccelerometerPeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('accelerometerChange', function (x, y, z) {
-          let time = getTime();
-          addReading(time, tag, 'accelerometer', { x: x, y: y, z: z });
-        });
-      });
-    });
-  });
-}
-
-function setUpMagnetomerListeners(tag) {
-  tag.enableMagnetometer(function (err) {
-    if (err) { console.error(err); return; }
-
-    tag.notifyMagnetometer(function (err) {
-      if (err) { console.error(err); return; }
-
-      tag.setMagnetometerPeriod(samplingPeriod, function (err) {
-        if (err) { console.error(err); return; }
-
-        tag.on('magnetometerChange', function (x, y, z) {
-          let time = getTime();
-          addReading(time, tag, 'magnetometer', { x: x, y: y, z: z });
-        });
-      });
-    });
-  });
-}
-
-SensorTag.discoverAll((tag) => {
-  tag.connectAndSetUp((err) => {
-    if (err) { console.error(err); return; }
-    // console.log('Found tag with id', tag.id);
-
-    data.tags.push({ id: tag.id });
-    tags += 1;
-
-    // setUpHumidityListeners(tag);
-    // setUpPressureListeners(tag);
-    // setUpLuxometerListeners(tag);
-    setUpGyroListeners(tag);
-    setUpAccelerometerListeners(tag);
-    setUpMagnetomerListeners(tag);
-  });
+let client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
+client.on('connect', () => {
+  let reader = new SensorTagReader(client);
+  reader.start();
 });
