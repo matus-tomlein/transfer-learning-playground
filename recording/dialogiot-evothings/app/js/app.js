@@ -114,16 +114,6 @@ String.prototype.hashCode = function() {
   {
     var sensorButtons = '';
 
-    sensorButtons += '<button id="but_start" '; 
-    sensorButtons += 'onclick="app.startSensors()" ';
-    sensorButtons += 'class="green small wide">';
-    sensorButtons += 'Start logging</button>';
-
-    sensorButtons += '<button id="but_stop" '; 
-    sensorButtons += 'onclick="app.stopSensors()" ';
-    sensorButtons += 'class="green small wide">';
-    sensorButtons += 'Stop logging</button>';
-
     document.getElementById("sensor-buttons").innerHTML = sensorButtons;	
   }
 
