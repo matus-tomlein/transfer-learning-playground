@@ -20,6 +20,7 @@ class SensorTagReader {
   constructor(client) {
     this.client = client;
     this.samplingPeriod = 100;
+    this.slowSamplingPeriod = 1000;
   }
 
   addReading(time, tag, sensor, value) {
@@ -42,7 +43,7 @@ class SensorTagReader {
       tag.notifyHumidity((err) => {
         if (err) { console.error(err); return; }
 
-        tag.setHumidityPeriod(this.samplingPeriod, (err) => {
+        tag.setHumidityPeriod(this.slowSamplingPeriod, (err) => {
           if (err) { console.error(err); return; }
 
           tag.on('humidityChange', (temperature, humidity) => {
@@ -81,7 +82,7 @@ class SensorTagReader {
       tag.notifyLuxometer((err) => {
         if (err) { console.error(err); return; }
 
-        tag.setLuxometerPeriod(this.samplingPeriod, (err) => {
+        tag.setLuxometerPeriod(this.slowSamplingPeriod, (err) => {
           if (err) { console.error(err); return; }
 
           tag.on('luxometerChange', (lux) => {
@@ -158,7 +159,7 @@ class SensorTagReader {
 
         // this.setUpHumidityListeners(tag);
         // this.setUpPressureListeners(tag);
-        // this.setUpLuxometerListeners(tag);
+        this.setUpLuxometerListeners(tag);
         this.setUpGyroListeners(tag);
         this.setUpAccelerometerListeners(tag);
         this.setUpMagnetomerListeners(tag);
@@ -168,7 +169,7 @@ class SensorTagReader {
 }
 
 
-let client = mqtt.connect('mqtt://matus.wv.cc.cmu.edu');
+let client = mqtt.connect('mqtt://transferlearning.andrew.cmu.edu');
 client.on('connect', () => {
   let reader = new SensorTagReader(client);
   reader.start();
