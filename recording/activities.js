@@ -19,7 +19,22 @@ let activityTypes = [
   'Coffee',
   'Null',
   'Faucet',
-  'Kettle'
+  'Kettle',
+  'Phone ringing',
+  'Chopping food',
+  'Conversation',
+  'Eating popcorn',
+  'Microwave door opened',
+  'Microwave door closed',
+  'Cupboard door opened',
+  'Cupboard door closed',
+  'Microwave button press',
+  'Taking ice',
+  'Making popcorn in microwave',
+  'Room lights off',
+  'Knocking',
+  'Frequency sweep',
+  'Phone vibrating'
 ];
 
 function start() {
