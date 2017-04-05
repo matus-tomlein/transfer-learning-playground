@@ -79,6 +79,7 @@ ws.createServer(function (conn) {
 console.log('Listening on MQTT and WS port 8001');
 
 setInterval(() => {
-  console.log('Online:', Object.keys(devicesOnline).join(', '));
+  let keys = Object.keys(devicesOnline);
+  console.log(keys.length, '-', _.sortBy(keys).join(', '));
   devicesOnline = {};
 }, 2000);
