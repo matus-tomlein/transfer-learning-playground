@@ -12,6 +12,18 @@ def split_labels_indexes(df_labels, ratio=0.7):
     return training_i, testing_i
 
 
+def take_percentage_of_data(df, df_labels, ratio):
+    indexes = df_labels.index.tolist()
+    np.random.shuffle(indexes)
+    split = int(round(ratio * len(indexes)))
+    df_i = indexes[:split]
+
+    df = df.loc[df.index.isin(df_i)]
+    df_labels = df_labels.loc[df_labels.index.isin(df_i)]
+
+    return df, df_labels
+
+
 def create_y_train_and_y_test(df_labels, training_i, testing_i):
     y_train = df_labels.loc[df_labels.index.isin(training_i)]
     y_test = df_labels.loc[df_labels.index.isin(testing_i)]
