@@ -1,3 +1,4 @@
+import json
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn.ensemble import RandomForestClassifier
@@ -53,10 +54,6 @@ def classify(X_train, y_train, X_test, clf_name='RandomForestClassifier'):
 
 
 def log_of_classification_results(y_test, y_pred):
-    results = [accuracy_score(y_test, y_pred)]
-    f1 = precision_recall_fscore_support(y_test, y_pred)
-    matrix = confusion_matrix(y_test, y_pred)
-    results += [item for sublist in f1 for item in sublist]
-    results += [item for sublist in matrix for item in sublist]
-
-    return results
+    f1 = [i.tolist() for i in precision_recall_fscore_support(y_test, y_pred)]
+    matrix = confusion_matrix(y_test, y_pred).tolist()
+    return [accuracy_score(y_test, y_pred), json.dumps(f1), json.dumps(matrix)]

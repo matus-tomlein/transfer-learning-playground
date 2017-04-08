@@ -1,23 +1,68 @@
 {
-  "activities": {
-    "synergy-mites-kitchen": [
+  "activities": [
+    "Dishes",
+    "Microwave",
+    "Coffee",
+    "Null",
+    "Faucet",
+    "Kettle",
+    "Phone ringing",
+    "Chopping food",
+    "Conversation",
+    "Eating popcorn",
+    "Microwave door opened",
+    "Microwave door closed",
+    "Cupboard door opened",
+    "Cupboard door closed",
+    "Microwave button press",
+    "Taking ice",
+    "Making popcorn in microwave",
+    "Room lights off",
+    "Knocking",
+    "Frequency sweep",
+    "Phone vibrating"
+  ],
+
+  "activity_sets": [
+    [
       "Dishes",
       "Microwave",
+      "Coffee",
+      "Null",
+      "Faucet",
+      "Kettle",
+      "Chopping food",
+      "Conversation",
+      "Eating popcorn",
+      "Making popcorn in microwave",
+      "Phone vibrating"
+    ],
+    [
+      "Dishes",
+      "Microwave",
+      "Coffee",
+      "Null",
+      "Faucet",
+      "Kettle",
+      "Phone vibrating"
+    ],
+    [
+      "Dishes",
       "Coffee",
       "Null",
       "Faucet",
       "Kettle"
     ],
-
-    "synergy-mites-colocated": [
+    [
+      "Conversation",
+      "Eating popcorn",
+      "Null"
+    ],
+    [
       "Dishes",
-      "Microwave",
-      "Coffee",
-      "Null",
-      "Faucet",
-      "Kettle"
+      "Null"
     ]
-  },
+  ],
 
   "features": [
     "ACCEL_sst_*",
@@ -26,17 +71,37 @@
     "ACCEL_sst_*|MICROPHONE_sst_*",
     "ACCEL_sst_*|MAGNETOMETER_sst_*",
     "MICROPHONE_sst_*|MAGNETOMETER_sst_*",
-    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*"
+    "ACCEL_sst_*|MICROPHONE_sst_*|MAGNETOMETER_sst_*",
+    "accel_*",
+    "microphone",
+    "mag*",
+    "accel_*|microphone",
+    "accel_*|mag*",
+    "microphone|mag*",
+    "accel_*|microphone|mag*",
+    "temperature",
+    "temperature|accel_*",
+    "temperature|accel_*|microphone"
   ],
 
   "feature_names": [
+    "Accel old",
+    "Mic old",
+    "Magnet old",
+    "Accel & mic old",
+    "Accel & magnet old",
+    "Mic & magnet old",
+    "Accel & mic & magnet old",
     "Accel",
     "Mic",
     "Magnet",
     "Accel & mic",
     "Accel & magnet",
     "Mic & magnet",
-    "Accel & mic & magnet"
+    "Accel & mic & magnet",
+    "Temp",
+    "Temp & accel",
+    "Temp & accel & mic"
   ],
 
   "classifiers": [
@@ -63,7 +128,31 @@
     "128.237.246.127",
     "128.237.248.186",
     "128.237.253.157",
-    "128.237.242.0"
+    "128.237.242.0",
+    "128.237.247.134",
+    "128.237.254.195",
+    "Matrix b827eb96f31a",
+    "Matrix b827ebe6e0f8",
+    "Matrix b827eb41f96f",
+    "DialogIoT 591844595",
+    "DialogIoT 591844599",
+    "DialogIoT 591844765",
+    "TI SensorTag 604",
+    "TI SensorTag 690",
+    "TI SensorTag 85",
+    "xdk_1",
+    "xdk_2",
+    "xdk_3"
+  ],
+
+  "datasets": [
+    "synergy-mites-kitchen",
+    "synergy-mites-colocated",
+    "synergy-final-iter1",
+    "synergy-final-iter2",
+    "scott-final-iter1",
+    "scott-final-iter2",
+    "robotics-final"
   ],
 
   "device_roles": {
@@ -79,6 +168,96 @@
       "128.237.248.186": "Sink U",
       "128.237.253.157": "Sink D",
       "128.237.242.0": "Table D"
+    },
+
+    "synergy-final-iter1": {
+      "128.237.246.127": "Mite 1 Coffee",
+      "128.237.248.186": "Mite 2 Table",
+      "128.237.254.195": "Mite 3 Sink",
+      "Matrix b827eb96f31a": "Matrix 1 Coffee",
+      "Matrix b827ebe6e0f8": "Matrix 2 Table",
+      "Matrix b827eb41f96f": "Matrix 3 Sink",
+      "DialogIoT 591844595": "Dialog 1 Table",
+      "DialogIoT 591844599": "Dialog 2 Sink",
+      "DialogIoT 591844765": "Dialog 3 Coffee",
+      "TI SensorTag 604": "SensorTag 1 Sink",
+      "TI SensorTag 690": "SensorTag 2 Table",
+      "TI SensorTag 85": "SensorTag 3 Coffee",
+      "xdk_1": "XDK 1 Table",
+      "xdk_2": "XDK 2 Sink",
+      "xdk_3": "XDK 3 Coffee"
+    },
+
+    "synergy-final-iter2": {
+      "128.237.246.127": "Mite 1 Table",
+      "128.237.248.186": "Mite 2 Sink",
+      "128.237.254.195": "Mite 3 Coffee",
+      "Matrix b827eb96f31a": "Matrix 1 Table",
+      "Matrix b827ebe6e0f8": "Matrix 2 Sink",
+      "Matrix b827eb41f96f": "Matrix 3 Coffee",
+      "DialogIoT 591844595": "Dialog 1 Sink",
+      "DialogIoT 591844599": "Dialog 2 Coffee",
+      "DialogIoT 591844765": "Dialog 3 Table",
+      "TI SensorTag 604": "SensorTag 1 Coffee",
+      "TI SensorTag 690": "SensorTag 2 Sink",
+      "TI SensorTag 85": "SensorTag 3 Table",
+      "xdk_1": "XDK 1 Sink",
+      "xdk_2": "XDK 2 Coffee",
+      "xdk_3": "XDK 3 Table"
+    },
+
+    "scott-final-iter1": {
+      "128.237.246.127": "Mite 1 Pantry",
+      "128.237.248.186": "Mite 2 Left",
+      "128.237.247.134": "Mite 4 Right",
+      "Matrix b827eb96f31a": "Matrix 1 Pantry",
+      "Matrix b827ebe6e0f8": "Matrix 2 Right",
+      "Matrix b827eb41f96f": "Matrix 3 Left",
+      "DialogIoT 591844595": "Dialog 1 Right",
+      "DialogIoT 591844599": "Dialog 2 Pantry",
+      "DialogIoT 591844765": "Dialog 3 Left",
+      "TI SensorTag 604": "SensorTag 1 Left",
+      "TI SensorTag 690": "SensorTag 2 Pantry",
+      "TI SensorTag 85": "SensorTag 3 Right",
+      "xdk_1": "XDK 1 Pantry",
+      "xdk_2": "XDK 2 Left",
+      "xdk_3": "XDK 3 Right"
+    },
+
+    "scott-final-iter2": {
+      "128.237.246.127": "Mite 1 Right",
+      "128.237.248.186": "Mite 2 Pantry",
+      "128.237.247.134": "Mite 4 Left",
+      "Matrix b827eb96f31a": "Matrix 1 Right",
+      "Matrix b827ebe6e0f8": "Matrix 2 Left",
+      "Matrix b827eb41f96f": "Matrix 3 Pantry",
+      "DialogIoT 591844595": "Dialog 1 Left",
+      "DialogIoT 591844599": "Dialog 2 Right",
+      "DialogIoT 591844765": "Dialog 3 Pantry",
+      "TI SensorTag 604": "SensorTag 1 Pantry",
+      "TI SensorTag 690": "SensorTag 2 Right",
+      "TI SensorTag 85": "SensorTag 3 Left",
+      "xdk_1": "XDK 1 Right",
+      "xdk_2": "XDK 2 Pantry",
+      "xdk_3": "XDK 3 Left"
+    },
+
+    "robotics-final": {
+      "128.237.246.127": "Mite 1 Coffee",
+      "128.237.248.186": "Mite 2 Entrance",
+      "128.237.247.134": "Mite 4 Sink",
+      "Matrix b827eb96f31a": "Matrix 1 Sink",
+      "Matrix b827ebe6e0f8": "Matrix 2 Entrance",
+      "Matrix b827eb41f96f": "Matrix 3 Coffee",
+      "DialogIoT 591844595": "Dialog 1 Entrance",
+      "DialogIoT 591844599": "Dialog 2 Coffee",
+      "DialogIoT 591844765": "Dialog 3 Sink",
+      "TI SensorTag 604": "SensorTag 1 Sink",
+      "TI SensorTag 690": "SensorTag 2 Coffee",
+      "TI SensorTag 85": "SensorTag 3 Entrance",
+      "xdk_1": "XDK 1 Coffee",
+      "xdk_2": "XDK 2 Entrance",
+      "xdk_3": "XDK 3 Sink"
     }
   }
 }
