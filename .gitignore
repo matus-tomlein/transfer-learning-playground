@@ -1,6 +1,7 @@
 # Datasets
 datasets/**/
 datasets/*.zip
+csv/*
 
 # Logs
 logs
