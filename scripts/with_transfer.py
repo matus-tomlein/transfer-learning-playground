@@ -2,15 +2,11 @@
 # -*- coding: utf8 -*-
 
 import pandas as pd
-import numpy as np
 import random
 import json
 import csv
-import queue
-import threading
-import time
 
-from ml.data_split import split, X_sort, take_percentage_of_data
+from ml.data_split import X_sort, take_percentage_of_data
 from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities
 from ml.parallelization import start_workers
@@ -29,29 +25,29 @@ datasets = [
 ]
 
 mite_features = [
-    "accel_*",
-    "mag*",
-    "accel_*|mag*",
+    "accel_",
+    "mag_",
+    "accel_|mag_",
     "microphone",
-    "accel_*|microphone",
+    "accel_|microphone",
     "temperature",
-    "temperature|accel_*|microphone"
+    "temperature|accel_|microphone"
 ]
 
 matrix_features = mite_features
 
 dialog_features = [
-    "accel_*",
-    "mag*",
-    "accel_*|mag*"
+    "accel_",
+    "mag_",
+    "accel_|mag_"
 ]
 
 sensortag_features = dialog_features
 bosch_features = dialog_features + [
     "microphone",
-    "accel_*|microphone",
+    "accel_|microphone",
     "temperature",
-    "temperature|accel_*|microphone"
+    "temperature|accel_|microphone"
 ]
 
 device_features = {
@@ -77,47 +73,57 @@ classifiers = [
     'RandomForestClassifier'
 ]
 
+use_activities_with_length = [
+    11, 5
+]
 
-## test the performance of classification
-def test(source_device, target_device, source_dataset_path, target_dataset_path,
-        use_features, use_activities, with_feature_selection, clf_name):
+
+# test the performance of classification
+def test(source_device, target_device, source_dataset_path,
+         target_dataset_path,
+         use_features, use_activities, with_feature_selection, clf_name):
     # print(source_device, target_device, source_dataset_path, target_dataset_path)
     source_file_name = source_device + '_selected' if with_feature_selection else source_device
 
-    ## read features
+    # read features
     df_source = pd.read_pickle(source_dataset_path + source_file_name + '.p')
     df_target = pd.read_pickle(target_dataset_path + target_device + '.p')
 
-    ## read labels
+    # read labels
     df_source_labels = pd.read_pickle(source_dataset_path + source_device + '_labels.p')
     df_target_labels = pd.read_pickle(target_dataset_path + target_device + '_labels.p')
 
-    ## filter features
+    # filter features
     df_source, df_target = filter_by_features(df_source, df_target,
-            use_features)
+                                              use_features)
     if df_source is None:
         return None
 
-    ## filter activities
+    # filter activities
     df_source, df_source_labels, df_target, df_target_labels = \
-    filter_by_activities(df_source, df_source_labels, df_target,
+        filter_by_activities(
+            df_source, df_source_labels, df_target,
             df_target_labels, use_activities)
     if df_source is None:
         return None
 
-    ## filter samples
+    # filter samples
     ratio = 0.6
-    df_source, df_source_labels = take_percentage_of_data(df_source,
+    df_source, df_source_labels = take_percentage_of_data(
+            df_source,
             df_source_labels, ratio)
-    df_target, df_target_labels = take_percentage_of_data(df_target,
+    df_target, df_target_labels = take_percentage_of_data(
+            df_target,
             df_target_labels, ratio)
 
     y_source = df_source_labels['label']
     y_target = df_target_labels['label']
 
-    ## sort feature columns
+    # sort feature columns
     X_source = X_sort(df_source)
     X_target = X_sort(df_target)
+
+    # feature_hash = get_feature_hash(df_source)
 
     try:
         y_target_pred = classify(X_source, y_source, X_target, clf_name)
@@ -129,12 +135,12 @@ def test(source_device, target_device, source_dataset_path, target_dataset_path,
     return r
 
 
-## the configuration file is used to find indices to represent devices and other
+# the configuration file is used to find indices to represent devices and other
 with open('configuration.json') as f:
     configuration = json.load(f)
 
 
-## write headers to the CSV file
+# write headers to the CSV file
 headers = [
     'source_device', 'target_device',
     'source_dataset', 'target_dataset',
@@ -145,18 +151,17 @@ headers = [
 ]
 with open(output_file, "w") as f:
     writer = csv.writer(f,
-            delimiter=',',
-            quotechar='"',
-            quoting=csv.QUOTE_MINIMAL)
+                        delimiter=',',
+                        quotechar='"',
+                        quoting=csv.QUOTE_MINIMAL)
     writer.writerow(headers)
-
 
 
 def worker(q):
     ds = random.sample(datasets, len(datasets))
 
-    ## main loop that goes through all the combinations of inputs and computes the
-    ## classification performance
+    # main loop that goes through all the combinations of inputs and computes
+    # the classification performance
     for ds_i, source_dataset in enumerate(ds):
         source_dataset_i = configuration['datasets'].index(source_dataset)
         source_dataset_path = '../datasets/' + source_dataset + '-features/'
@@ -174,12 +179,15 @@ def worker(q):
                     target_i = configuration['devices'].index(target_device)
 
                     if source_dataset == target_dataset and source_device == \
-                    target_device:
+                            target_device:
                         continue
 
-
-                    for activity_i, activities in enumerate(configuration['activity_sets']):
+                    for activity_i, activities in \
+                            enumerate(configuration['activity_sets']):
                         activities_i = [configuration['activities'].index(a) for a in activities]
+
+                        if not len(activities) in use_activities_with_length:
+                            continue
 
                         features = device_features[source_device]
                         for use_features in features:
@@ -192,7 +200,8 @@ def worker(q):
                                     with_feature_selection = repeat % 2 == 0
 
                                     try:
-                                        report = test(source_device=source_device,
+                                        report = test(
+                                                source_device=source_device,
                                                 target_device=target_device,
                                                 source_dataset_path=source_dataset_path,
                                                 target_dataset_path=target_dataset_path,
@@ -217,5 +226,6 @@ def worker(q):
                                         print(str(error))
 
         print(str(ds_i) + ' out of ' + str(len(ds)))
+
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)

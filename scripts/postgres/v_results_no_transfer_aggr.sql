@@ -1,7 +1,7 @@
 CREATE OR REPLACE VIEW v_results_no_transfer_aggr AS
 
 SELECT
-dataset, device, location, features, feature_selection,
+dataset, device, location, features, feature_selection, device_type, room,
 AVG(accuracy) as avg_accuracy,
 SUM(dishes_x_dishes) AS sum_dishes_x_dishes,
 SUM(dishes_x_microwave) AS sum_dishes_x_microwave,
@@ -125,5 +125,5 @@ SUM(phone_vibrating_x_eating_popcorn) AS sum_phone_vibrating_x_eating_popcorn,
 SUM(phone_vibrating_x_making_popcorn_in_microwave) AS sum_phone_vibrating_x_making_popcorn_in_microwave,
 SUM(phone_vibrating_x_phone_vibrating) AS sum_phone_vibrating_x_phone_vibrating
 FROM v_results_no_transfer
-GROUP BY device, features, location, dataset, feature_selection
+GROUP BY device, features, location, dataset, feature_selection, device_type, room
 ORDER BY avg_accuracy DESC

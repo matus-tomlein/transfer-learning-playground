@@ -1,8 +1,10 @@
 CREATE OR REPLACE VIEW v_results_no_transfer AS
 
 SELECT devices.name AS device,
+devices.type AS device_type,
 features.name AS features,
 datasets.name AS dataset,
+datasets.room AS room,
 device_locations.name AS location,
 accuracy,
 feature_selection,
