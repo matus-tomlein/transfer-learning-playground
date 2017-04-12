@@ -27,6 +27,10 @@ function processMessage(data) {
   keys = _.without(keys, 'device');
   keys = _.sortBy(keys);
 
+  let zeroValuesCount = 0;
+  keys.forEach((key) => { if (data[key] == 0) { zeroValuesCount += 1; } });
+  if (zeroValuesCount > 2) { console.log('Getting zero values from', data.device); }
+
   let fileName = _.uniq(keys.map((s) => { return s.substring(0, 3); })).join('_');
   fileName = data.device + '_' + fileName;
   let filePath = folderPath + '/' + fileName + '.csv';
