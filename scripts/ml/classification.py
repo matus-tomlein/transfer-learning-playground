@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
-from sklearn.preprocessing import StandardScaler
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn import tree
 from sklearn.linear_model import LogisticRegression
@@ -38,7 +37,6 @@ def fit_pipeline(X_train, y_train, clf_name):
     ppl = Pipeline([
         ('impute', Imputer()),
         ('imput_inf', ImputeInf()),
-        ('scale', StandardScaler()),
         ('clf', clf)
     ])
 

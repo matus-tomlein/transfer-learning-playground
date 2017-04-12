@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities
@@ -23,6 +24,7 @@ def test_transfer(source_device, target_device,
                   use_columns=None,
                   use_activities=None,
                   with_feature_selection=False,
+                  scale_domains_independently=False,
                   clf_name='RandomForestClassifier'):
     source_file_name = source_device + '_selected' if with_feature_selection else source_device
 
@@ -73,12 +75,21 @@ def test_transfer(source_device, target_device,
             df_target,
             df_target_labels, ratio)
 
-    y_source = df_source_labels['label']
-    y_target = df_target_labels['label']
-
     # sort feature columns
     X_source = X_sort(df_source)
     X_target = X_sort(df_target)
+
+    # scale domains
+    if scale_domains_independently:
+        df_source = StandardScaler().fit_transform(df_source)
+        df_target = StandardScaler().fit_transform(df_target)
+    else:
+        scaler = StandardScaler()
+        df_source = scaler.fit_transform(df_source)
+        df_target = scaler.transform(df_target)
+
+    y_source = df_source_labels['label']
+    y_target = df_target_labels['label']
 
     try:
         y_target_pred = classify(X_source, y_source, X_target, clf_name)

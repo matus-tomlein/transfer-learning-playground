@@ -82,6 +82,7 @@ headers = [
     'source_dataset', 'target_dataset',
     'activities',
     'feature', 'clf', 'feature_selection',
+    'scaled_independently',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
 ]
@@ -137,6 +138,8 @@ def worker(q):
                             clf_i = configuration['classifiers'].index(clf_name)
 
                             for repeat in range(10):
+                                scale_independently = repeat % 2 == 0
+
                                 try:
                                     report = test_transfer(
                                             source_device=source_device,
@@ -145,6 +148,7 @@ def worker(q):
                                             target_dataset_path=target_dataset_path,
                                             force_columns=force_columns,
                                             use_activities=activities_i,
+                                            scale_domains_independently=scale_independently,
                                             clf_name=clf_name)
                                     if report is None:
                                         continue
@@ -155,7 +159,8 @@ def worker(q):
                                         activity_i,
                                         feature_i,
                                         clf_i,
-                                        0  # feature selection
+                                        0,  # feature selection
+                                        1 if scale_independently else 0
                                     ] + report
                                     report = [str(i) for i in report]
 
