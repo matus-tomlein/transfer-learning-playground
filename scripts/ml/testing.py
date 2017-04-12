@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-import numpy as np
 from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities
 from ml.data_split import X_sort, take_percentage_of_data
@@ -9,7 +8,7 @@ from ml.data_split import X_sort, take_percentage_of_data
 def add_empty_columns_if_missing(df, columns):
     for column in columns:
         if column not in df:
-            df[column] = np.nan
+            df[column] = -1
 
 
 # test the performance of classification
@@ -94,7 +93,7 @@ def test_transfer(source_device, target_device,
     try:
         y_target_pred = classify(X_source, y_source, X_target, clf_name)
     except ValueError as ex:
-        print(ex)
+        print('in classification', ex)
         return None
 
     r = log_of_classification_results(y_target, y_target_pred)
