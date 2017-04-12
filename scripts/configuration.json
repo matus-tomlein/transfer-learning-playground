@@ -81,7 +81,8 @@
     "accel_|microphone|mag_",
     "temperature",
     "temperature|accel_",
-    "temperature|accel_|microphone"
+    "temperature|accel_|microphone",
+    "ALL"
   ],
 
   "feature_names": [
@@ -101,7 +102,8 @@
     "Accel & mic & magnet",
     "Temp",
     "Temp & accel",
-    "Temp & accel & mic"
+    "Temp & accel & mic",
+    "All features"
   ],
 
   "classifiers": [

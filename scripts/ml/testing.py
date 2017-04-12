@@ -1,13 +1,25 @@
 import pandas as pd
+import numpy as np
 from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities
 from ml.data_split import X_sort, take_percentage_of_data
 
 
+def add_empty_columns_if_missing(df, columns):
+    for column in columns:
+        if column not in df:
+            df[column] = np.nan
+
+
 # test the performance of classification
+# use_features: filter features by the regular expression
+# use_columns: use columns with names in the list
+# force_columns: keep the given columns and if they are not present, create them
+# with empty values
 def test_transfer(source_device, target_device,
                   source_dataset_path, target_dataset_path,
                   use_features=None,
+                  force_columns=None,
                   use_columns=None,
                   use_activities=None,
                   with_feature_selection=False,
@@ -28,6 +40,11 @@ def test_transfer(source_device, target_device,
                                                   use_features)
         if df_source is None:
             return None
+
+    if force_columns is not None:
+        use_columns = force_columns
+        add_empty_columns_if_missing(df_source, force_columns)
+        add_empty_columns_if_missing(df_target, force_columns)
 
     # filter specific columns
     if use_columns is not None:

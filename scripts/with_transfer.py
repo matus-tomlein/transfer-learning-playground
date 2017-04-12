@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-import pandas as pd
 import random
 import json
 import csv
 
-from ml.data_split import X_sort, take_percentage_of_data
-from ml.classification import classify, log_of_classification_results
-from ml.filtering import filter_by_features, filter_by_activities
 from ml.parallelization import start_workers
+from ml.testing import test_transfer
 
 output_file = '/'.join([
     'results',
@@ -78,63 +75,6 @@ use_activities_with_length = [
 ]
 
 
-# test the performance of classification
-def test(source_device, target_device, source_dataset_path,
-         target_dataset_path,
-         use_features, use_activities, with_feature_selection, clf_name):
-    # print(source_device, target_device, source_dataset_path, target_dataset_path)
-    source_file_name = source_device + '_selected' if with_feature_selection else source_device
-
-    # read features
-    df_source = pd.read_pickle(source_dataset_path + source_file_name + '.p')
-    df_target = pd.read_pickle(target_dataset_path + target_device + '.p')
-
-    # read labels
-    df_source_labels = pd.read_pickle(source_dataset_path + source_device + '_labels.p')
-    df_target_labels = pd.read_pickle(target_dataset_path + target_device + '_labels.p')
-
-    # filter features
-    df_source, df_target = filter_by_features(df_source, df_target,
-                                              use_features)
-    if df_source is None:
-        return None
-
-    # filter activities
-    df_source, df_source_labels, df_target, df_target_labels = \
-        filter_by_activities(
-            df_source, df_source_labels, df_target,
-            df_target_labels, use_activities)
-    if df_source is None:
-        return None
-
-    # filter samples
-    ratio = 0.6
-    df_source, df_source_labels = take_percentage_of_data(
-            df_source,
-            df_source_labels, ratio)
-    df_target, df_target_labels = take_percentage_of_data(
-            df_target,
-            df_target_labels, ratio)
-
-    y_source = df_source_labels['label']
-    y_target = df_target_labels['label']
-
-    # sort feature columns
-    X_source = X_sort(df_source)
-    X_target = X_sort(df_target)
-
-    # feature_hash = get_feature_hash(df_source)
-
-    try:
-        y_target_pred = classify(X_source, y_source, X_target, clf_name)
-    except ValueError as ex:
-        print(ex)
-        return None
-
-    r = log_of_classification_results(y_target, y_target_pred)
-    return r
-
-
 # the configuration file is used to find indices to represent devices and other
 with open('configuration.json') as f:
     configuration = json.load(f)
@@ -200,7 +140,7 @@ def worker(q):
                                     with_feature_selection = repeat % 2 == 0
 
                                     try:
-                                        report = test(
+                                        report = test_transfer(
                                                 source_device=source_device,
                                                 target_device=target_device,
                                                 source_dataset_path=source_dataset_path,
