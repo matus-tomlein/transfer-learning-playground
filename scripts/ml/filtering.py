@@ -2,24 +2,36 @@ import hashlib
 import numpy as np
 
 
-def filter_by_activities(df_source, df_source_labels, df_target,
-                         df_target_labels, use_activities):
-    df_source_labels = df_source_labels.loc[df_source_labels.label.isin(use_activities)]
-    df_source = df_source.loc[df_source.index.isin(df_source_labels.index)]
-    df_target_labels = df_target_labels.loc[df_target_labels.label.isin(use_activities)]
-    df_target = df_target.loc[df_target.index.isin(df_target_labels.index)]
+def filter_by_activities_transfer(df_source, df_source_labels, df_target,
+                                  df_target_labels, use_activities):
 
-    source_activities = np.sort(df_source_labels.label.unique().tolist()).tolist()
-    target_activities = np.sort(df_target_labels.label.unique().tolist()).tolist()
-    activities = np.sort(use_activities).tolist()
-    if activities != source_activities or activities != target_activities:
-        print('Source or target dont provide the activities')
+    df_source, df_source_labels = filter_by_activities(df_source,
+                                                       df_source_labels,
+                                                       use_activities)
+    df_target, df_target_labels = filter_by_activities(df_target,
+                                                       df_target_labels,
+                                                       use_activities)
+
+    if df_source is None or df_target is None:
         return None, None, None, None
 
     return df_source, df_source_labels, df_target, df_target_labels
 
 
-def filter_by_features(df_source, df_target, use_features):
+def filter_by_activities(df, df_labels, use_activities):
+    df_labels = df_labels.loc[df_labels.label.isin(use_activities)]
+    df = df.loc[df.index.isin(df_labels.index)]
+
+    df_activities = np.sort(df_labels.label.unique().tolist()).tolist()
+    activities = np.sort(use_activities).tolist()
+    if activities != df_activities:
+        print('Source or target dont provide the activities')
+        return None, None
+
+    return df, df_labels
+
+
+def filter_by_features(df_source, use_features, df_target=None):
     # filter features to be used on the source domain
     df_source = df_source.filter(regex=(use_features))
     if len(df_source.columns) == 0:

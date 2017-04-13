@@ -6,7 +6,7 @@ import json
 import csv
 
 from ml.parallelization import start_workers
-from ml.testing import test_transfer
+from ml.testing import test_with_or_without_transfer
 
 output_file = '/'.join([
     'results',
@@ -98,7 +98,7 @@ def worker(q):
                         source_i = configuration['devices'].index(source_device)
                         target_i = configuration['devices'].index(target_device)
 
-                        if source_dataset == target_dataset and source_device == \
+                        if source_dataset != target_dataset or source_device != \
                                 target_device:
                             continue
 
@@ -111,7 +111,7 @@ def worker(q):
 
                             for repeat in range(10):
                                 try:
-                                    report = test_transfer(
+                                    report = test_with_or_without_transfer(
                                             source_device=source_device,
                                             target_device=target_device,
                                             source_dataset_path=source_dataset_path,

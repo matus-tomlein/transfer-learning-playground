@@ -3,6 +3,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.naive_bayes import GaussianNB, BernoulliNB
@@ -31,21 +32,30 @@ def classifier_by_name(clf_name):
     return clf
 
 
-def fit_pipeline(X_train, y_train, clf_name):
+def fit_pipeline(X_train, y_train, clf_name, scale=False):
     clf = classifier_by_name(clf_name)
 
-    ppl = Pipeline([
-        ('impute', Imputer()),
-        ('imput_inf', ImputeInf()),
-        ('clf', clf)
-    ])
+    if scale:
+        ppl = Pipeline([
+            ('impute', Imputer()),
+            ('imput_inf', ImputeInf()),
+            ('scale', StandardScaler()),
+            ('clf', clf)
+        ])
+    else:
+        ppl = Pipeline([
+            ('impute', Imputer()),
+            ('imput_inf', ImputeInf()),
+            ('clf', clf)
+        ])
 
     ppl.fit(X_train, y_train)
     return ppl
 
 
-def classify(X_train, y_train, X_test, clf_name='RandomForestClassifier'):
-    ppl = fit_pipeline(X_train, y_train, clf_name)
+def classify(X_train, y_train, X_test, clf_name='RandomForestClassifier',
+             scale=False):
+    ppl = fit_pipeline(X_train, y_train, clf_name, scale)
     y_pred = ppl.predict(X_test)
 
     return y_pred

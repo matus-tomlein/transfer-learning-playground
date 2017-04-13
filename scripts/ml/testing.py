@@ -1,7 +1,9 @@
 import pandas as pd
+from ml.data_split import split_one_df
 from sklearn.preprocessing import StandardScaler
 from ml.classification import classify, log_of_classification_results
-from ml.filtering import filter_by_features, filter_by_activities
+from ml.filtering import filter_by_features, filter_by_activities, \
+    filter_by_activities_transfer
 from ml.data_split import X_sort, take_percentage_of_data
 
 
@@ -11,11 +13,100 @@ def add_empty_columns_if_missing(df, columns):
             df[column] = -1
 
 
+def test_with_or_without_transfer(source_device, target_device,
+                                  source_dataset_path, target_dataset_path,
+                                  use_features=None,
+                                  force_columns=None,
+                                  use_columns=None,
+                                  use_activities=None,
+                                  with_feature_selection=False,
+                                  scale_domains_independently=False,
+                                  clf_name='RandomForestClassifier'):
+
+    if source_device == target_device and source_dataset_path == \
+    target_dataset_path:
+        return test_without_transfer(device=source_device,
+                                     dataset_path=source_dataset_path,
+                                     use_features=use_features,
+                                     force_columns=force_columns,
+                                     use_columns=use_columns,
+                                     use_activities=use_activities,
+                                     with_feature_selection=with_feature_selection,
+                                     clf_name=clf_name)
+
+    else:
+        return test_transfer(source_device=source_device,
+                             target_device=target_device,
+                             source_dataset_path=source_dataset_path,
+                             target_dataset_path=target_dataset_path,
+                             use_features=use_features,
+                             force_columns=force_columns,
+                             use_columns=use_columns,
+                             use_activities=use_activities,
+                             with_feature_selection=with_feature_selection,
+                             scale_domains_independently=scale_domains_independently,
+                             clf_name=clf_name)
+
+
+def test_without_transfer(device,
+                          dataset_path,
+                          use_features=None,
+                          force_columns=None,
+                          use_columns=None,
+                          use_activities=None,
+                          with_feature_selection=False,
+                          clf_name='RandomForestClassifier'):
+    # read features
+    file_name = device
+    if with_feature_selection:
+        file_name += '_selected'
+    df = pd.read_pickle(dataset_path + file_name + '.p')
+
+    # read labels
+    df_labels = pd.read_pickle(dataset_path + device + '_labels.p')
+
+    # filter features
+    if use_features is not None:
+        df = filter_by_features(df_source=df,
+                                use_features=use_features)
+        if df is None:
+            return None
+
+    if force_columns is not None:
+        use_columns = force_columns
+        add_empty_columns_if_missing(df, force_columns)
+
+    # filter specific columns
+    if use_columns is not None:
+        try:
+            df = df[use_columns]
+        except KeyError as ex:
+            print('No such columns found')
+            return None
+
+    # filter activities
+    if use_activities is not None:
+        df, df_labels = filter_by_activities(df, df_labels, use_activities)
+        if df is None:
+            return None
+    X_train, y_train, X_test, y_test = split_one_df(df, df_labels, 0.7)
+
+    try:
+        y_pred = classify(X_train, y_train, X_test, clf_name, scale=True)
+    except ValueError as ex:
+        print(ex)
+        return None
+
+    r = log_of_classification_results(y_test, y_pred)
+
+    return r
+
+
 # test the performance of classification
 # use_features: filter features by the regular expression
 # use_columns: use columns with names in the list
-# force_columns: keep the given columns and if they are not present, create them
-# with empty values
+# force_columns: keep the given columns and if they are not present, create
+# them with empty values
 def test_transfer(source_device, target_device,
                   source_dataset_path, target_dataset_path,
                   use_features=None,
@@ -37,8 +128,9 @@ def test_transfer(source_device, target_device,
 
     # filter features
     if use_features is not None:
-        df_source, df_target = filter_by_features(df_source, df_target,
-                                                  use_features)
+        df_source, df_target = filter_by_features(df_source=df_source,
+                                                  df_target=df_target,
+                                                  use_features=use_features)
         if df_source is None:
             return None
 
@@ -59,7 +151,7 @@ def test_transfer(source_device, target_device,
     # filter activities
     if use_activities is not None:
         df_source, df_source_labels, df_target, df_target_labels = \
-            filter_by_activities(
+            filter_by_activities_transfer(
                 df_source, df_source_labels, df_target,
                 df_target_labels, use_activities)
         if df_source is None:
@@ -91,7 +183,8 @@ def test_transfer(source_device, target_device,
     y_target = df_target_labels['label']
 
     try:
-        y_target_pred = classify(X_source, y_source, X_target, clf_name)
+        y_target_pred = classify(X_source, y_source, X_target, clf_name,
+                                 scale=False)
     except ValueError as ex:
         print('in classification', ex)
         return None
