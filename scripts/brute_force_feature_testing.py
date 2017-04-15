@@ -35,7 +35,7 @@ use_activities_with_length = [
     11
 ]
 
-number_of_samples = 100000
+number_of_samples = 10000
 
 with open('tsfresh_feature_types.json') as f:
     tsfresh_feature_types = json.load(f)
@@ -51,10 +51,17 @@ headers = [
     'source_device', 'target_device',
     'source_dataset', 'target_dataset',
     'activities', 'feature',
+    'scaled_independently',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
 ]
 headers += tsfresh_feature_types
+
+features = {
+    # "accel_": ['accel_x', 'accel_y', 'accel_z'],
+    "microphone": ['microphone'],
+    "mag_": ['mag_x', 'mag_y', 'mag_z']
+}
 
 with open(output_file, "w") as f:
     writer = csv.writer(f,
@@ -65,75 +72,80 @@ with open(output_file, "w") as f:
 
 
 def worker(q):
-    ds = random.sample(datasets, len(datasets))
+    for feature_key in features:
+        feature_i = configuration['features'].index(feature_key)
 
-    for sample_i in range(number_of_samples):
-        feature_types = random.sample(tsfresh_feature_types,
-                                      len(tsfresh_feature_types))[:10]
+        for sample_i in range(number_of_samples):
+            feature_types = random.sample(tsfresh_feature_types,
+                                          len(tsfresh_feature_types))[:10]
 
-        use_columns = ['accel_x__' + t for t in feature_types]
-        use_columns += ['accel_y__' + t for t in feature_types]
-        use_columns += ['accel_z__' + t for t in feature_types]
+            use_columns = []
+            for f in features[feature_key]:
+                use_columns += [f + '__' + t for t in feature_types]
 
-        # main loop that goes through all the combinations of inputs and
-        # computes the classification performance
-        for ds_i, source_dataset in enumerate(ds):
-            source_dataset_i = configuration['datasets'].index(source_dataset)
-            source_dataset_path = '../datasets/' + source_dataset + '-features/'
+            ds = random.sample(datasets, len(datasets))
+            # main loop that goes through all the combinations of inputs and
+            # computes the classification performance
+            for ds_i, source_dataset in enumerate(ds):
+                source_dataset_i = configuration['datasets'].index(source_dataset)
+                source_dataset_path = '../datasets/' + source_dataset + '-features/'
 
-            for target_dataset in ds:
-                target_dataset_i = configuration['datasets'].index(target_dataset)
-                target_dataset_path = '../datasets/' + target_dataset + '-features/'
+                for target_dataset in ds:
+                    target_dataset_i = configuration['datasets'].index(target_dataset)
+                    target_dataset_path = '../datasets/' + target_dataset + '-features/'
 
-                source_roles = configuration['device_roles'][source_dataset]
-                for source_device in source_roles:
-                    if source_device not in devices_to_use:
-                        continue
-
-                    target_roles = configuration['device_roles'][target_dataset]
-                    for target_device in target_roles:
-                        if target_device not in devices_to_use:
+                    source_roles = configuration['device_roles'][source_dataset]
+                    for source_device in source_roles:
+                        if source_device not in devices_to_use:
                             continue
 
-                        source_i = configuration['devices'].index(source_device)
-                        target_i = configuration['devices'].index(target_device)
-
-                        if source_dataset != target_dataset or source_device != \
-                                target_device:
-                            continue
-
-                        for activity_i, activities in \
-                                enumerate(configuration['activity_sets']):
-                            activities_i = [configuration['activities'].index(a) for a in activities]
-
-                            if not len(activities) in use_activities_with_length:
+                        target_roles = configuration['device_roles'][target_dataset]
+                        for target_device in target_roles:
+                            if target_device not in devices_to_use:
                                 continue
 
-                            for repeat in range(10):
-                                try:
-                                    report = test_with_or_without_transfer(
-                                            source_device=source_device,
-                                            target_device=target_device,
-                                            source_dataset_path=source_dataset_path,
-                                            target_dataset_path=target_dataset_path,
-                                            use_columns=use_columns,
-                                            use_activities=activities_i)
-                                    if report is None:
-                                        continue
+                            source_i = configuration['devices'].index(source_device)
+                            target_i = configuration['devices'].index(target_device)
 
-                                    report = [
-                                        source_i, target_i,
-                                        source_dataset_i, target_dataset_i,
-                                        activity_i, 7
-                                    ] + report
+                            if source_dataset == target_dataset and source_device == \
+                                    target_device:
+                                continue
 
-                                    report += [1 if f in feature_types else 0 for f in tsfresh_feature_types]
+                            for activity_i, activities in \
+                                    enumerate(configuration['activity_sets']):
+                                activities_i = [configuration['activities'].index(a) for a in activities]
 
-                                    report = [str(i) for i in report]
+                                if not len(activities) in use_activities_with_length:
+                                    continue
 
-                                    q.put(report)
-                                except Exception as error:
-                                    print(str(error))
+                                for repeat in range(20):
+                                    scale_independently = repeat % 2 == 0
+
+                                    try:
+                                        report = test_with_or_without_transfer(
+                                                source_device=source_device,
+                                                target_device=target_device,
+                                                source_dataset_path=source_dataset_path,
+                                                target_dataset_path=target_dataset_path,
+                                                use_columns=use_columns,
+                                                use_activities=activities_i)
+                                        if report is None:
+                                            continue
+
+                                        report = [
+                                            source_i, target_i,
+                                            source_dataset_i, target_dataset_i,
+                                            activity_i, feature_i,
+                                            1 if scale_independently else 0
+                                        ] + report
+
+                                        report += [1 if f in feature_types else 0 for f in tsfresh_feature_types]
+
+                                        report = [str(i) for i in report]
+
+                                        q.put(report)
+                                    except Exception as error:
+                                        print(str(error))
 
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)
