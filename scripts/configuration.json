@@ -82,7 +82,22 @@
     "temperature",
     "temperature|accel_",
     "temperature|accel_|microphone",
-    "ALL"
+    "ALL",
+    "accel_.*index_mass_quantile",
+    "microphone.*index_mass_quantile",
+    "mag_.*index_mass_quantile",
+    "accel_.*index_mass_quantile|microphone.*index_mass_quantile",
+    "accel_.*index_mass_quantile|mag_.*index_mass_quantile",
+    "microphone.*index_mass_quantile|mag_.*index_mass_quantile",
+    "accel_.*index_mass_quantile|microphone.*index_mass_quantile|mag_.*index_mass_quantile",
+    "temperature.*index_mass_quantile",
+    "temperature.*index_mass_quantile|accel_.*index_mass_quantile",
+    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|microphone.*index_mass_quantile",
+    "humidity.*index_mass_quantile",
+    "light.*index_mass_quantile",
+    "pressure.*index_mass_quantile",
+    "gyro_.*index_mass_quantile",
+    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|gyro_.*index_mass_quantile|microphone.*index_mass_quantile|humidity.*index_mass_quantile|pressure.*index_mass_quantile|light.*index_mass_quantile"
   ],
 
   "feature_names": [

@@ -10,7 +10,7 @@ from ml.testing import test_transfer
 
 output_file = '/'.join([
     'results',
-    'results_transfer_2.csv'
+    'results_transfer.csv'
 ])
 
 datasets = [
@@ -21,57 +21,21 @@ datasets = [
     'robotics-final'
 ]
 
-mite_features = [
-    "accel_",
-    "mag_",
-    "accel_|mag_",
-    "microphone",
-    "accel_|microphone",
-    "temperature",
-    "temperature|accel_|microphone"
+features = [
+    "accel_.*index_mass_quantile",
+    "mag_.*index_mass_quantile",
+    "microphone.*index_mass_quantile",
+    "accel_.*index_mass_quantile|microphone.*index_mass_quantile|mag_.*index_mass_quantile",
+    "accel_.*index_mass_quantile|mag_.*index_mass_quantile",
+    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|gyro_.*index_mass_quantile|microphone.*index_mass_quantile|humidity.*index_mass_quantile|pressure.*index_mass_quantile|light.*index_mass_quantile"
 ]
-
-matrix_features = mite_features
-
-dialog_features = [
-    "accel_",
-    "mag_",
-    "accel_|mag_"
-]
-
-sensortag_features = dialog_features
-bosch_features = dialog_features + [
-    "microphone",
-    "accel_|microphone",
-    "temperature",
-    "temperature|accel_|microphone"
-]
-
-device_features = {
-    '128.237.246.127': mite_features,
-    '128.237.248.186': mite_features,
-    '128.237.247.134': mite_features,
-    '128.237.254.195': mite_features,
-    'Matrix b827eb96f31a': matrix_features,
-    'Matrix b827ebe6e0f8': matrix_features,
-    'Matrix b827eb41f96f': matrix_features,
-    'DialogIoT 591844595': dialog_features,
-    'DialogIoT 591844599': dialog_features,
-    'DialogIoT 591844765': dialog_features,
-    'TI SensorTag 604': sensortag_features,
-    'TI SensorTag 690': sensortag_features,
-    'TI SensorTag 85': sensortag_features,
-    'xdk_1': bosch_features,
-    'xdk_2': bosch_features,
-    'xdk_3': bosch_features
-}
 
 classifiers = [
     'RandomForestClassifier'
 ]
 
 use_activities_with_length = [
-    11, 5
+    11
 ]
 
 
@@ -86,6 +50,7 @@ headers = [
     'source_dataset', 'target_dataset',
     'activities',
     'feature', 'clf', 'feature_selection',
+    'scaled_independently',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
 ]
@@ -129,7 +94,6 @@ def worker(q):
                         if not len(activities) in use_activities_with_length:
                             continue
 
-                        features = device_features[source_device]
                         for use_features in features:
                             feature_i = configuration['features'].index(use_features)
 
@@ -137,7 +101,8 @@ def worker(q):
                                 clf_i = configuration['classifiers'].index(clf_name)
 
                                 for repeat in range(10):
-                                    with_feature_selection = repeat % 2 == 0
+                                    with_feature_selection = False
+                                    scale_independently = False
 
                                     try:
                                         report = test_transfer(
@@ -148,6 +113,7 @@ def worker(q):
                                                 use_features=use_features,
                                                 use_activities=activities_i,
                                                 with_feature_selection=with_feature_selection,
+                                                scale_domains_independently=scale_independently,
                                                 clf_name=clf_name)
                                         if report is None:
                                             continue
@@ -157,15 +123,14 @@ def worker(q):
                                             source_dataset_i, target_dataset_i,
                                             activity_i,
                                             feature_i, clf_i,
-                                            1 if with_feature_selection else 0
+                                            1 if with_feature_selection else 0,
+                                            1 if scale_independently else 0
                                         ] + report
                                         report = [str(i) for i in report]
 
                                         q.put(report)
                                     except Exception as error:
                                         print(str(error))
-
-        print(str(ds_i) + ' out of ' + str(len(ds)))
 
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)
