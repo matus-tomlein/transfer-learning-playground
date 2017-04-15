@@ -14,7 +14,8 @@ target_locations.name AS target_location,
 activities.name AS activities,
 activities.id AS activities_id,
 accuracy,
-feature_selection
+feature_selection,
+scaled_independently
 
 FROM results_transfer
 JOIN devices AS source_devices ON source_devices.id = results_transfer.source_device

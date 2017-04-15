@@ -231,6 +231,8 @@ SUM("variance_larger_than_standard_deviation") AS "variance_larger_than_standard
       SELECT *,
 
       CASE
+      WHEN source_room = target_room AND source_device = target_device AND source_location = target_location
+      THEN 'Same sensor in same place'
       WHEN source_room = target_room AND source_device_type = target_device_type AND source_location = target_location
       THEN 'Same sensor type in same place'
       WHEN source_room = target_room AND source_device = target_device AND source_location <> target_location
@@ -253,5 +255,4 @@ SUM("variance_larger_than_standard_deviation") AS "variance_larger_than_standard
 
       FROM v_results_feature_testing
     ) t
-GROUP BY type_of_transfer, r_accuracy
-
+GROUP BY type_of_transfer, r_accuracy;

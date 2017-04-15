@@ -1,5 +1,6 @@
 SELECT
 accuracy,
+MAX("Same sensor in same place") AS "Same sensor in same place",
 MAX("Same sensor type in same place") AS "Same sensor type in same place",
 MAX("Same sensor in different place in same room") AS "Same sensor in different place in same room",
 MAX("Same sensor type in different place in same room") AS "Same sensor type in different place in same room",
@@ -12,6 +13,7 @@ FROM
 (
   SELECT
   accuracy,
+  CASE WHEN type_of_transfer = 'Same sensor in same place' THEN count ELSE 0 END AS "Same sensor in same place",
   CASE WHEN type_of_transfer = 'Same sensor type in same place' THEN count ELSE 0 END AS "Same sensor type in same place",
   CASE WHEN type_of_transfer = 'Same sensor in different place in same room' THEN count ELSE 0 END AS "Same sensor in different place in same room",
   CASE WHEN type_of_transfer = 'Same sensor type in different place in same room' THEN count ELSE 0 END AS "Same sensor type in different place in same room",
@@ -29,6 +31,8 @@ FROM
       SELECT
 
       CASE
+      WHEN source_room = target_room AND source_device = target_device AND source_location = target_location
+      THEN 'Same sensor in same place'
       WHEN source_room = target_room AND source_device_type = target_device_type AND source_location = target_location
       THEN 'Same sensor type in same place'
       WHEN source_room = target_room AND source_device = target_device AND source_location <> target_location
@@ -47,14 +51,15 @@ FROM
       THEN 'Different sensor type in different room'
       ELSE 'Other' END AS type_of_transfer,
 
-      ROUND(accuracy_with_fs, 1) as accuracy
+      ROUND(accuracy_with_fs_and_is, 1) as accuracy
 
       FROM v_results_transfer_aggr_fs
 
       WHERE
       activities = '11 activities' AND
       source_device_type = 'SensorTag' AND
-      features = 'Accel & magnet'
+      features = 'All' AND
+      accuracy_with_fs_and_is > 0
 
       ORDER BY type_of_transfer
     ) t
