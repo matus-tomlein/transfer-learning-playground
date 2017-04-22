@@ -159,7 +159,11 @@
     "TI SensorTag 85",
     "xdk_1",
     "xdk_2",
-    "xdk_3"
+    "xdk_3",
+    "128.237.234.0",
+    "128.237.237.122",
+    "128.237.239.234",
+    "ALL"
   ],
 
   "datasets": [
@@ -169,7 +173,11 @@
     "synergy-final-iter2",
     "scott-final-iter1",
     "scott-final-iter2",
-    "robotics-final"
+    "robotics-final",
+    "synergy-final-iter3",
+    "synergy-final-iter1,synergy-final-iter2,synergy-final-iter3",
+    "scott-final-iter1,synergy-final-iter1,synergy-final-iter2",
+    "scott-final-iter1,robotics-final"
   ],
 
   "device_roles": {
@@ -209,6 +217,24 @@
       "128.237.246.127": "Mite 1 Table",
       "128.237.248.186": "Mite 2 Sink",
       "128.237.254.195": "Mite 3 Coffee",
+      "Matrix b827eb96f31a": "Matrix 1 Table",
+      "Matrix b827ebe6e0f8": "Matrix 2 Sink",
+      "Matrix b827eb41f96f": "Matrix 3 Coffee",
+      "DialogIoT 591844595": "Dialog 1 Sink",
+      "DialogIoT 591844599": "Dialog 2 Coffee",
+      "DialogIoT 591844765": "Dialog 3 Table",
+      "TI SensorTag 604": "SensorTag 1 Coffee",
+      "TI SensorTag 690": "SensorTag 2 Sink",
+      "TI SensorTag 85": "SensorTag 3 Table",
+      "xdk_1": "XDK 1 Sink",
+      "xdk_2": "XDK 2 Coffee",
+      "xdk_3": "XDK 3 Table"
+    },
+
+    "synergy-final-iter3": {
+      "128.237.234.0": "Mite 1 Table",
+      "128.237.237.122": "Mite 2 Sink",
+      "128.237.239.234": "Mite 4 Right",
       "Matrix b827eb96f31a": "Matrix 1 Table",
       "Matrix b827ebe6e0f8": "Matrix 2 Sink",
       "Matrix b827eb41f96f": "Matrix 3 Coffee",

@@ -5,6 +5,11 @@ from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities, \
     filter_by_activities_transfer
 from ml.data_split import X_sort, take_percentage_of_data
+import json
+
+
+with open('configuration.json') as f:
+    configuration = json.load(f)
 
 
 def add_empty_columns_if_missing(df, columns):
@@ -14,7 +19,7 @@ def add_empty_columns_if_missing(df, columns):
 
 
 def test_with_or_without_transfer(source_device, target_device,
-                                  source_dataset_path, target_dataset_path,
+                                  source_dataset, target_dataset,
                                   use_features=None,
                                   force_columns=None,
                                   use_columns=None,
@@ -23,47 +28,46 @@ def test_with_or_without_transfer(source_device, target_device,
                                   scale_domains_independently=False,
                                   clf_name='RandomForestClassifier'):
 
-    if source_device == target_device and source_dataset_path == \
-    target_dataset_path:
-        return test_without_transfer(device=source_device,
-                                     dataset_path=source_dataset_path,
-                                     use_features=use_features,
-                                     force_columns=force_columns,
-                                     use_columns=use_columns,
-                                     use_activities=use_activities,
-                                     with_feature_selection=with_feature_selection,
-                                     clf_name=clf_name)
+    if source_device == target_device and source_dataset == \
+            target_dataset:
+        return test_without_transfer(
+                device=source_device,
+                dataset=source_dataset,
+                use_features=use_features,
+                force_columns=force_columns,
+                use_columns=use_columns,
+                use_activities=use_activities,
+                with_feature_selection=with_feature_selection,
+                clf_name=clf_name)
 
     else:
-        return test_transfer(source_device=source_device,
-                             target_device=target_device,
-                             source_dataset_path=source_dataset_path,
-                             target_dataset_path=target_dataset_path,
-                             use_features=use_features,
-                             force_columns=force_columns,
-                             use_columns=use_columns,
-                             use_activities=use_activities,
-                             with_feature_selection=with_feature_selection,
-                             scale_domains_independently=scale_domains_independently,
-                             clf_name=clf_name)
+        return test_transfer(
+                source_device=source_device,
+                target_device=target_device,
+                source_dataset=source_dataset,
+                target_dataset=target_dataset,
+                use_features=use_features,
+                force_columns=force_columns,
+                use_columns=use_columns,
+                use_activities=use_activities,
+                with_feature_selection=with_feature_selection,
+                scale_domains_independently=scale_domains_independently,
+                clf_name=clf_name)
 
 
 def test_without_transfer(device,
-                          dataset_path,
+                          dataset,
                           use_features=None,
                           force_columns=None,
                           use_columns=None,
                           use_activities=None,
                           with_feature_selection=False,
                           clf_name='RandomForestClassifier'):
-    # read features
-    file_name = device
-    if with_feature_selection:
-        file_name += '_selected'
-    df = pd.read_pickle(dataset_path + file_name + '.p')
-
-    # read labels
-    df_labels = pd.read_pickle(dataset_path + device + '_labels.p')
+    # read dataset
+    df, df_labels = read_dataset(
+            dataset,
+            device,
+            with_feature_selection=with_feature_selection)
 
     # filter features
     if use_features is not None:
@@ -108,7 +112,7 @@ def test_without_transfer(device,
 # force_columns: keep the given columns and if they are not present, create
 # them with empty values
 def test_transfer(source_device, target_device,
-                  source_dataset_path, target_dataset_path,
+                  source_dataset, target_dataset,
                   use_features=None,
                   force_columns=None,
                   use_columns=None,
@@ -116,15 +120,15 @@ def test_transfer(source_device, target_device,
                   with_feature_selection=False,
                   scale_domains_independently=False,
                   clf_name='RandomForestClassifier'):
-    source_file_name = source_device + '_selected' if with_feature_selection else source_device
-
-    # read features
-    df_source = pd.read_pickle(source_dataset_path + source_file_name + '.p')
-    df_target = pd.read_pickle(target_dataset_path + target_device + '.p')
-
-    # read labels
-    df_source_labels = pd.read_pickle(source_dataset_path + source_device + '_labels.p')
-    df_target_labels = pd.read_pickle(target_dataset_path + target_device + '_labels.p')
+    # read datasets
+    df_source, df_source_labels = read_dataset(
+            source_dataset,
+            source_device,
+            with_feature_selection=with_feature_selection)
+    df_target, df_target_labels = read_dataset(
+            target_dataset,
+            target_device,
+            with_feature_selection=with_feature_selection)
 
     # filter features
     if use_features is not None:
@@ -191,3 +195,33 @@ def test_transfer(source_device, target_device,
 
     r = log_of_classification_results(y_target, y_target_pred)
     return r
+
+
+def read_dataset(datasets, devices, with_feature_selection=False):
+    dfs = []
+    dfs_labels = []
+
+    for dataset in datasets.split(','):
+        dataset_path = '../datasets/' + dataset + '-features/'
+
+        device_list = []
+        if devices == 'ALL':
+            device_roles = configuration['device_roles'][dataset]
+            device_list = device_roles.keys()
+        else:
+            device_list = devices.split(',')
+
+        for device in device_list:
+            file_name = device + '_selected' if with_feature_selection else \
+                    device
+
+            df = pd.read_pickle(dataset_path + file_name + '.p')
+            df_labels = pd.read_pickle(dataset_path + device + '_labels.p')
+
+            dfs.append(df)
+            dfs_labels.append(df_labels)
+
+    if len(dfs) == 1:
+        return dfs[0], dfs_labels[0]
+
+    return pd.concat(dfs), pd.concat(dfs_labels)

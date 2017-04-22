@@ -13,17 +13,34 @@ output_file = '/'.join([
     'results_transfer.csv'
 ])
 
-datasets = [
-    'synergy-final-iter1',
-    'synergy-final-iter2',
-    'scott-final-iter1',
-    'scott-final-iter2',
-    'robotics-final'
+source_datasets = [
+    'synergy-final-iter1,synergy-final-iter2,synergy-final-iter3',
+    'scott-final-iter1,synergy-final-iter1,synergy-final-iter2',
+    'scott-final-iter1,robotics-final'
+]
+
+datasets = {
+    'synergy-final-iter1,synergy-final-iter2,synergy-final-iter3': [
+        'scott-final-iter1',
+        'robotics-final'
+    ],
+    'scott-final-iter1,synergy-final-iter1,synergy-final-iter2': [
+        'robotics-final',
+        'synergy-final-iter3',
+    ],
+    'scott-final-iter1,robotics-final': [
+        'synergy-final-iter1',
+        'synergy-final-iter2',
+        'synergy-final-iter3'
+    ]
+}
+
+devices = [
+    'ALL'
 ]
 
 features = [
     "accel_.*index_mass_quantile",
-    "mag_.*index_mass_quantile",
     "microphone.*index_mass_quantile",
     "accel_.*index_mass_quantile|microphone.*index_mass_quantile|mag_.*index_mass_quantile",
     "accel_.*index_mass_quantile|mag_.*index_mass_quantile",
@@ -63,23 +80,17 @@ with open(output_file, "w") as f:
 
 
 def worker(q):
-    ds = random.sample(datasets, len(datasets))
-
     # main loop that goes through all the combinations of inputs and computes
     # the classification performance
-    for ds_i, source_dataset in enumerate(ds):
+    for source_dataset in datasets:
         source_dataset_i = configuration['datasets'].index(source_dataset)
-        source_dataset_path = '../datasets/' + source_dataset + '-features/'
 
-        for target_dataset in ds:
+        for target_dataset in datasets[source_dataset]:
             target_dataset_i = configuration['datasets'].index(target_dataset)
-            target_dataset_path = '../datasets/' + target_dataset + '-features/'
 
-            source_roles = configuration['device_roles'][source_dataset]
-            for source_device in source_roles:
+            for source_device in devices:
 
-                target_roles = configuration['device_roles'][target_dataset]
-                for target_device in target_roles:
+                for target_device in devices:
                     source_i = configuration['devices'].index(source_device)
                     target_i = configuration['devices'].index(target_device)
 
@@ -108,8 +119,8 @@ def worker(q):
                                         report = test_transfer(
                                                 source_device=source_device,
                                                 target_device=target_device,
-                                                source_dataset_path=source_dataset_path,
-                                                target_dataset_path=target_dataset_path,
+                                                source_dataset=source_dataset,
+                                                target_dataset=target_dataset,
                                                 use_features=use_features,
                                                 use_activities=activities_i,
                                                 with_feature_selection=with_feature_selection,
