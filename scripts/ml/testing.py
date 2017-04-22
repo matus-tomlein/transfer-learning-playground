@@ -178,17 +178,13 @@ def test_transfer(source_device, target_device,
     if scale_domains_independently:
         df_source = StandardScaler().fit_transform(df_source)
         df_target = StandardScaler().fit_transform(df_target)
-    else:
-        scaler = StandardScaler()
-        df_source = scaler.fit_transform(df_source)
-        df_target = scaler.transform(df_target)
 
     y_source = df_source_labels['label']
     y_target = df_target_labels['label']
 
     try:
         y_target_pred = classify(X_source, y_source, X_target, clf_name,
-                                 scale=False)
+                                 scale=not scale_domains_independently)
     except ValueError as ex:
         print('in classification', ex)
         return None
