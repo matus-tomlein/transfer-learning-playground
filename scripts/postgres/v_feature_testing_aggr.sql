@@ -3,6 +3,8 @@ CREATE MATERIALIZED VIEW v_feature_testing_aggr AS
 SELECT
 r_accuracy AS accuracy,
 type_of_transfer,
+scaled_independently,
+features,
 SUM("abs_energy") AS "abs_energy",
 SUM("absolute_sum_of_changes") AS "absolute_sum_of_changes",
 SUM("approximate_entropy__m_2__r_0.1") AS "approximate_entropy__m_2__r_0.1",
@@ -255,4 +257,4 @@ SUM("variance_larger_than_standard_deviation") AS "variance_larger_than_standard
 
       FROM v_results_feature_testing
     ) t
-GROUP BY type_of_transfer, r_accuracy;
+GROUP BY type_of_transfer, r_accuracy, scaled_independently, features;

@@ -51,7 +51,7 @@ FROM
       THEN 'Different sensor type in different room'
       ELSE 'Other' END AS type_of_transfer,
 
-      ROUND(accuracy_with_fs_and_is, 1) as accuracy
+      ROUND(accuracy_without_fs_without_is, 1) as accuracy
 
       FROM v_results_transfer_aggr_fs
 
@@ -59,7 +59,7 @@ FROM
       activities = '11 activities' AND
       source_device_type = 'SensorTag' AND
       features = 'All' AND
-      accuracy_with_fs_and_is > 0
+      accuracy_without_fs_without_is > 0
 
       ORDER BY type_of_transfer
     ) t
