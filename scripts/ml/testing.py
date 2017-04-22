@@ -4,7 +4,8 @@ from sklearn.preprocessing import StandardScaler
 from ml.classification import classify, log_of_classification_results
 from ml.filtering import filter_by_features, filter_by_activities, \
     filter_by_activities_transfer
-from ml.data_split import X_sort, take_percentage_of_data
+from ml.data_split import X_sort, take_percentage_of_data, \
+        take_multiple_percentages_of_data
 import json
 
 
@@ -24,6 +25,7 @@ def test_with_or_without_transfer(source_device, target_device,
                                   force_columns=None,
                                   use_columns=None,
                                   use_activities=None,
+                                  training_target_data_ratio=0.0,
                                   with_feature_selection=False,
                                   scale_domains_independently=False,
                                   clf_name='RandomForestClassifier'):
@@ -52,6 +54,7 @@ def test_with_or_without_transfer(source_device, target_device,
                 use_activities=use_activities,
                 with_feature_selection=with_feature_selection,
                 scale_domains_independently=scale_domains_independently,
+                training_target_data_ratio=training_target_data_ratio,
                 clf_name=clf_name)
 
 
@@ -119,6 +122,9 @@ def test_transfer(source_device, target_device,
                   use_activities=None,
                   with_feature_selection=False,
                   scale_domains_independently=False,
+                  training_source_data_ratio=0.6,
+                  testing_target_data_ratio=0.6,
+                  training_target_data_ratio=0.0,
                   clf_name='RandomForestClassifier'):
     # read datasets
     df_source, df_source_labels = read_dataset(
@@ -162,14 +168,29 @@ def test_transfer(source_device, target_device,
             return None
 
     # filter samples
-    ratio = 0.6
     df_source, df_source_labels = take_percentage_of_data(
             df_source,
-            df_source_labels, ratio)
-    df_target, df_target_labels = take_percentage_of_data(
-            df_target,
-            df_target_labels, ratio)
+            df_source_labels,
+            training_source_data_ratio)
 
+    # split the target data to testing and training if necessary
+    if training_target_data_ratio > 0.0:
+        dfs_target = take_multiple_percentages_of_data(
+                df_target,
+                df_target_labels,
+                [training_target_data_ratio, testing_target_data_ratio])
+
+        df_target_train, df_target_train_labels = dfs_target[0]
+        df_target, df_target_labels = dfs_target[1]
+
+        df_source, df_source_labels = concat_and_reindex(
+                [df_source, df_target_train],
+                [df_source_labels, df_target_train_labels])
+    else:
+        df_target, df_target_labels = take_percentage_of_data(
+                df_target,
+                df_target_labels,
+                testing_target_data_ratio)
 
     # sort feature columns
     X_source = X_sort(df_source)
@@ -198,8 +219,6 @@ def read_dataset(datasets, devices, with_feature_selection=False):
     dfs = []
     dfs_labels = []
 
-    max_index = -1
-
     for dataset in datasets.split(','):
         dataset_path = '../datasets/' + dataset + '-features/'
 
@@ -220,15 +239,33 @@ def read_dataset(datasets, devices, with_feature_selection=False):
             df = df.reset_index(drop=True)
             df_labels = df_labels.reset_index(drop=True)
 
-            df.index += max_index + 1
-            df_labels.index += max_index + 1
-
-            max_index = df.index.max()
-
             dfs.append(df)
             dfs_labels.append(df_labels)
 
+    return concat_and_reindex(dfs, dfs_labels)
+
+
+def concat_and_reindex(dfs, dfs_labels):
     if len(dfs) == 1:
         return dfs[0], dfs_labels[0]
 
-    return pd.concat(dfs), pd.concat(dfs_labels)
+    max_index = -1
+
+    dfs_reindexed = []
+    dfs_labels_reindexed = []
+
+    for i, df in enumerate(dfs):
+        df_labels = dfs_labels[i]
+
+        df = df.reset_index(drop=True)
+        df_labels = df_labels.reset_index(drop=True)
+
+        df.index += max_index + 1
+        df_labels.index += max_index + 1
+
+        max_index = df.index.max()
+
+        dfs_reindexed.append(df)
+        dfs_labels_reindexed.append(df_labels)
+
+    return pd.concat(dfs_reindexed), pd.concat(dfs_labels_reindexed)

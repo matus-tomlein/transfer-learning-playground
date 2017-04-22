@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-import random
 import json
 import csv
 
@@ -13,22 +12,27 @@ output_file = '/'.join([
     'results_transfer.csv'
 ])
 
-source_datasets = [
-    'synergy-final-iter1,synergy-final-iter2,synergy-final-iter3',
-    'scott-final-iter1,synergy-final-iter1,synergy-final-iter2',
-    'scott-final-iter1,robotics-final'
-]
-
 datasets = {
-    'synergy-final-iter1,synergy-final-iter2,synergy-final-iter3': [
+    'synergy-final-iter1': [
         'scott-final-iter1',
         'robotics-final'
     ],
-    'scott-final-iter1,synergy-final-iter1,synergy-final-iter2': [
-        'robotics-final',
-        'synergy-final-iter3',
+    'synergy-final-iter2': [
+        'scott-final-iter1',
+        'robotics-final'
     ],
-    'scott-final-iter1,robotics-final': [
+    'synergy-final-iter3': [
+        'scott-final-iter1',
+        'robotics-final'
+    ],
+    'scott-final-iter1': [
+        'synergy-final-iter1',
+        'synergy-final-iter2',
+        'synergy-final-iter3',
+        'robotics-final'
+    ],
+    'robotics-final': [
+        'scott-final-iter1',
         'synergy-final-iter1',
         'synergy-final-iter2',
         'synergy-final-iter3'
@@ -67,7 +71,7 @@ headers = [
     'source_dataset', 'target_dataset',
     'activities',
     'feature', 'clf', 'feature_selection',
-    'scaled_independently',
+    'scaled_independently', 'target_training_data',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
 ]
@@ -88,9 +92,10 @@ def worker(q):
         for target_dataset in datasets[source_dataset]:
             target_dataset_i = configuration['datasets'].index(target_dataset)
 
-            for source_device in devices:
+            for source_device in configuration['device_roles'][source_dataset]:
 
-                for target_device in devices:
+                for target_device in configuration['device_roles'][target_dataset]:
+
                     source_i = configuration['devices'].index(source_device)
                     target_i = configuration['devices'].index(target_device)
 
@@ -111,37 +116,42 @@ def worker(q):
                             for clf_name in classifiers:
                                 clf_i = configuration['classifiers'].index(clf_name)
 
-                                for repeat in range(10):
-                                    with_feature_selection = False
-                                    scale_independently = False
+                                for r in range(8):
+                                    target_data_ratio = r / 10.0
 
-                                    try:
-                                        report = test_transfer(
-                                                source_device=source_device,
-                                                target_device=target_device,
-                                                source_dataset=source_dataset,
-                                                target_dataset=target_dataset,
-                                                use_features=use_features,
-                                                use_activities=activities_i,
-                                                with_feature_selection=with_feature_selection,
-                                                scale_domains_independently=scale_independently,
-                                                clf_name=clf_name)
-                                        if report is None:
-                                            continue
+                                    for repeat in range(10):
+                                        with_feature_selection = False
+                                        scale_independently = False
 
-                                        report = [
-                                            source_i, target_i,
-                                            source_dataset_i, target_dataset_i,
-                                            activity_i,
-                                            feature_i, clf_i,
-                                            1 if with_feature_selection else 0,
-                                            1 if scale_independently else 0
-                                        ] + report
-                                        report = [str(i) for i in report]
+                                        try:
+                                            report = test_transfer(
+                                                    source_device=source_device,
+                                                    target_device=target_device,
+                                                    source_dataset=source_dataset,
+                                                    target_dataset=target_dataset,
+                                                    use_features=use_features,
+                                                    use_activities=activities_i,
+                                                    training_target_data_ratio=target_data_ratio,
+                                                    with_feature_selection=with_feature_selection,
+                                                    scale_domains_independently=scale_independently,
+                                                    clf_name=clf_name)
+                                            if report is None:
+                                                continue
 
-                                        q.put(report)
-                                    except Exception as error:
-                                        print(str(error))
+                                            report = [
+                                                source_i, target_i,
+                                                source_dataset_i, target_dataset_i,
+                                                activity_i,
+                                                feature_i, clf_i,
+                                                1 if with_feature_selection else 0,
+                                                1 if scale_independently else 0,
+                                                target_data_ratio
+                                            ] + report
+                                            report = [str(i) for i in report]
+
+                                            q.put(report)
+                                        except Exception as error:
+                                            print(str(error))
 
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)

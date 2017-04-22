@@ -24,6 +24,24 @@ def take_percentage_of_data(df, df_labels, ratio):
     return df, df_labels
 
 
+def take_multiple_percentages_of_data(df, df_labels, ratios):
+    indexes = df_labels.index.tolist()
+    np.random.shuffle(indexes)
+
+    since = 0
+    dfs_i = []
+
+    for ratio in ratios:
+        until = int(round(ratio * len(indexes))) + since
+        dfs_i.append(indexes[since:until])
+        since = until
+
+    dfs = [[df.loc[df.index.isin(df_i)],
+            df_labels.loc[df_labels.index.isin(df_i)]] for df_i in dfs_i]
+
+    return dfs
+
+
 def create_y_train_and_y_test(df_labels, training_i, testing_i):
     y_train = df_labels.loc[df_labels.index.isin(training_i)]
     y_test = df_labels.loc[df_labels.index.isin(testing_i)]
