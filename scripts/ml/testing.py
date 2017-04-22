@@ -170,6 +170,7 @@ def test_transfer(source_device, target_device,
             df_target,
             df_target_labels, ratio)
 
+
     # sort feature columns
     X_source = X_sort(df_source)
     X_target = X_sort(df_target)
@@ -197,6 +198,8 @@ def read_dataset(datasets, devices, with_feature_selection=False):
     dfs = []
     dfs_labels = []
 
+    max_index = -1
+
     for dataset in datasets.split(','):
         dataset_path = '../datasets/' + dataset + '-features/'
 
@@ -213,6 +216,14 @@ def read_dataset(datasets, devices, with_feature_selection=False):
 
             df = pd.read_pickle(dataset_path + file_name + '.p')
             df_labels = pd.read_pickle(dataset_path + device + '_labels.p')
+
+            df = df.reset_index(drop=True)
+            df_labels = df_labels.reset_index(drop=True)
+
+            df.index += max_index + 1
+            df_labels.index += max_index + 1
+
+            max_index = df.index.max()
 
             dfs.append(df)
             dfs_labels.append(df_labels)

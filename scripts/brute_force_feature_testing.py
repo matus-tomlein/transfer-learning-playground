@@ -35,7 +35,7 @@ use_activities_with_length = [
     11
 ]
 
-number_of_samples = 10000
+number_of_samples = 30000
 
 with open('tsfresh_feature_types.json') as f:
     tsfresh_feature_types = json.load(f)
