@@ -6,6 +6,7 @@ from ml.filtering import filter_by_features, filter_by_activities, \
     filter_by_activities_transfer
 from ml.data_split import X_sort, take_percentage_of_data, \
         take_multiple_percentages_of_data
+from ml.domain_adaptation import easy_domain_adaptation_update_dataframes
 import json
 
 
@@ -28,6 +29,7 @@ def test_with_or_without_transfer(source_device, target_device,
                                   training_target_data_ratio=0.0,
                                   with_feature_selection=False,
                                   scale_domains_independently=False,
+                                  use_easy_domain_adaptation=False,
                                   clf_name='RandomForestClassifier'):
 
     if source_device == target_device and source_dataset == \
@@ -55,6 +57,7 @@ def test_with_or_without_transfer(source_device, target_device,
                 with_feature_selection=with_feature_selection,
                 scale_domains_independently=scale_domains_independently,
                 training_target_data_ratio=training_target_data_ratio,
+                use_easy_domain_adaptation=use_easy_domain_adaptation,
                 clf_name=clf_name)
 
 
@@ -125,6 +128,7 @@ def test_transfer(source_device, target_device,
                   training_source_data_ratio=0.6,
                   testing_target_data_ratio=0.6,
                   training_target_data_ratio=0.0,
+                  use_easy_domain_adaptation=False,
                   clf_name='RandomForestClassifier'):
     # read datasets
     df_source, df_source_labels = read_dataset(
@@ -166,6 +170,11 @@ def test_transfer(source_device, target_device,
                 df_target_labels, use_activities)
         if df_source is None:
             return None
+
+    # do easy domain adaptation
+    if use_easy_domain_adaptation:
+        df_source, df_target = easy_domain_adaptation_update_dataframes(
+                df_source, df_target)
 
     # filter samples
     df_source, df_source_labels = take_percentage_of_data(

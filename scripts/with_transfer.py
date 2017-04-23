@@ -9,7 +9,7 @@ from ml.testing import test_transfer
 
 output_file = '/'.join([
     'results',
-    'results_transfer.csv'
+    'results_transfer_easy_da.csv'
 ])
 
 datasets = {
@@ -72,6 +72,7 @@ headers = [
     'activities',
     'feature', 'clf', 'feature_selection',
     'scaled_independently', 'target_training_data',
+    'easy_domain_adaptation',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
 ]
@@ -122,6 +123,7 @@ def worker(q):
                                     for repeat in range(10):
                                         with_feature_selection = False
                                         scale_independently = False
+                                        use_easy_domain_adaptation = True
 
                                         try:
                                             report = test_transfer(
@@ -134,6 +136,7 @@ def worker(q):
                                                     training_target_data_ratio=target_data_ratio,
                                                     with_feature_selection=with_feature_selection,
                                                     scale_domains_independently=scale_independently,
+                                                    use_easy_domain_adaptation=use_easy_domain_adaptation,
                                                     clf_name=clf_name)
                                             if report is None:
                                                 continue
@@ -145,7 +148,8 @@ def worker(q):
                                                 feature_i, clf_i,
                                                 1 if with_feature_selection else 0,
                                                 1 if scale_independently else 0,
-                                                target_data_ratio
+                                                target_data_ratio,
+                                                1 if use_easy_domain_adaptation else 0
                                             ] + report
                                             report = [str(i) for i in report]
 
