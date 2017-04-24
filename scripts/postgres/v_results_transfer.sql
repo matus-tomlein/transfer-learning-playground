@@ -15,7 +15,9 @@ activities.name AS activities,
 activities.id AS activities_id,
 accuracy,
 feature_selection,
-scaled_independently
+scaled_independently,
+target_training_data,
+easy_domain_adaptation
 
 FROM results_transfer
 JOIN devices AS source_devices ON source_devices.id = results_transfer.source_device
