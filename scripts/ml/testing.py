@@ -26,6 +26,7 @@ def test_with_or_without_transfer(source_device, target_device,
                                   force_columns=None,
                                   use_columns=None,
                                   use_activities=None,
+                                  training_source_data_ratio=0.6,
                                   training_target_data_ratio=0.0,
                                   with_feature_selection=False,
                                   scale_domains_independently=False,
@@ -42,6 +43,7 @@ def test_with_or_without_transfer(source_device, target_device,
                 use_columns=use_columns,
                 use_activities=use_activities,
                 with_feature_selection=with_feature_selection,
+                training_source_data_ratio=training_source_data_ratio,
                 clf_name=clf_name)
 
     else:
@@ -56,6 +58,7 @@ def test_with_or_without_transfer(source_device, target_device,
                 use_activities=use_activities,
                 with_feature_selection=with_feature_selection,
                 scale_domains_independently=scale_domains_independently,
+                training_source_data_ratio=training_source_data_ratio,
                 training_target_data_ratio=training_target_data_ratio,
                 use_easy_domain_adaptation=use_easy_domain_adaptation,
                 clf_name=clf_name)
@@ -68,6 +71,7 @@ def test_without_transfer(device,
                           use_columns=None,
                           use_activities=None,
                           with_feature_selection=False,
+                          training_source_data_ratio=0.7,
                           clf_name='RandomForestClassifier'):
     # read dataset
     df, df_labels = read_dataset(
@@ -77,8 +81,8 @@ def test_without_transfer(device,
 
     # filter features
     if use_features is not None:
-        df = filter_by_features(df_source=df,
-                                use_features=use_features)
+        df, __ = filter_by_features(df_source=df,
+                                    use_features=use_features)
         if df is None:
             return None
 
@@ -99,12 +103,24 @@ def test_without_transfer(device,
         df, df_labels = filter_by_activities(df, df_labels, use_activities)
         if df is None:
             return None
-    X_train, y_train, X_test, y_test = split_one_df(df, df_labels, 0.7)
+    # X_train, y_train, X_test, y_test = split_one_df(df, df_labels, 0.7)
+
+    # split into training and testing
+    testing_source_data_ratio = 0.4
+    dfs = take_multiple_percentages_of_data(
+            df, df_labels,
+            [training_source_data_ratio, testing_source_data_ratio])
+
+    X_train, y_train = dfs[0]
+    X_test, y_test = dfs[1]
+
+    y_train = y_train['label']
+    y_test = y_test['label']
 
     try:
         y_pred = classify(X_train, y_train, X_test, clf_name, scale=True)
     except ValueError as ex:
-        print(ex)
+        print('in classification', ex)
         return None
 
     r = log_of_classification_results(y_test, y_pred)

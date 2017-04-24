@@ -3,40 +3,22 @@
 
 import json
 import csv
+import traceback
 
 from ml.parallelization import start_workers
-from ml.testing import test_transfer
+from ml.testing import test_with_or_without_transfer
 
 output_file = '/'.join([
     'results',
-    'results_transfer_easy_da.csv'
+    'results_transfer.csv'
 ])
 
 datasets = {
-    'synergy-final-iter1': [
-        'scott-final-iter1',
-        'robotics-final'
-    ],
-    'synergy-final-iter2': [
-        'scott-final-iter1',
-        'robotics-final'
-    ],
-    'synergy-final-iter3': [
-        'scott-final-iter1',
-        'robotics-final'
-    ],
-    'scott-final-iter1': [
-        'synergy-final-iter1',
-        'synergy-final-iter2',
-        'synergy-final-iter3',
-        'robotics-final'
-    ],
-    'robotics-final': [
-        'scott-final-iter1',
-        'synergy-final-iter1',
-        'synergy-final-iter2',
-        'synergy-final-iter3'
-    ]
+    'synergy-final-iter1',
+    'synergy-final-iter2',
+    'synergy-final-iter3',
+    'scott-final-iter1',
+    'robotics-final'
 }
 
 devices = [
@@ -72,6 +54,7 @@ headers = [
     'activities',
     'feature', 'clf', 'feature_selection',
     'scaled_independently', 'target_training_data',
+    'source_training_data',
     'easy_domain_adaptation',
     'accuracy', 'precision_recall_fscore_support',
     'confusion_matrix'
@@ -90,7 +73,7 @@ def worker(q):
     for source_dataset in datasets:
         source_dataset_i = configuration['datasets'].index(source_dataset)
 
-        for target_dataset in datasets[source_dataset]:
+        for target_dataset in datasets:
             target_dataset_i = configuration['datasets'].index(target_dataset)
 
             for source_device in configuration['device_roles'][source_dataset]:
@@ -100,7 +83,7 @@ def worker(q):
                     source_i = configuration['devices'].index(source_device)
                     target_i = configuration['devices'].index(target_device)
 
-                    if source_dataset == target_dataset and source_device == \
+                    if source_dataset != target_dataset or source_device != \
                             target_device:
                         continue
 
@@ -117,22 +100,24 @@ def worker(q):
                             for clf_name in classifiers:
                                 clf_i = configuration['classifiers'].index(clf_name)
 
-                                for r in range(8):
-                                    target_data_ratio = r / 10.0
+                                for r in range(7):
+                                    target_data_ratio = 0.0
+                                    source_training_data = r / 10.0 + 0.1
 
                                     for repeat in range(10):
                                         with_feature_selection = False
                                         scale_independently = False
-                                        use_easy_domain_adaptation = True
+                                        use_easy_domain_adaptation = False
 
                                         try:
-                                            report = test_transfer(
+                                            report = test_with_or_without_transfer(
                                                     source_device=source_device,
                                                     target_device=target_device,
                                                     source_dataset=source_dataset,
                                                     target_dataset=target_dataset,
                                                     use_features=use_features,
                                                     use_activities=activities_i,
+                                                    training_source_data_ratio=source_training_data,
                                                     training_target_data_ratio=target_data_ratio,
                                                     with_feature_selection=with_feature_selection,
                                                     scale_domains_independently=scale_independently,
@@ -149,13 +134,14 @@ def worker(q):
                                                 1 if with_feature_selection else 0,
                                                 1 if scale_independently else 0,
                                                 target_data_ratio,
+                                                source_training_data,
                                                 1 if use_easy_domain_adaptation else 0
                                             ] + report
                                             report = [str(i) for i in report]
 
                                             q.put(report)
                                         except Exception as error:
-                                            print(str(error))
+                                            print('ex', str(error))
 
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)

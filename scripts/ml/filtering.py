@@ -38,12 +38,13 @@ def filter_by_features(df_source, use_features, df_target=None):
         print('No features found for source')
         return None, None
 
-    # filter features on the target to be the same as on the source
-    try:
-        df_target = df_target[df_source.columns]
-    except KeyError as ex:
-        print('Target doesnt provide the same columns as source')
-        return None, None
+    if df_target is not None:
+        # filter features on the target to be the same as on the source
+        try:
+            df_target = df_target[df_source.columns]
+        except KeyError as ex:
+            print('Target doesnt provide the same columns as source')
+            return None, None
 
     return df_source, df_target
 
