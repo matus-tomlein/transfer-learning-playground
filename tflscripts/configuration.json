@@ -97,7 +97,8 @@
     "light.*index_mass_quantile",
     "pressure.*index_mass_quantile",
     "gyro_.*index_mass_quantile",
-    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|gyro_.*index_mass_quantile|microphone.*index_mass_quantile|humidity.*index_mass_quantile|pressure.*index_mass_quantile|light.*index_mass_quantile"
+    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|gyro_.*index_mass_quantile|microphone.*index_mass_quantile|humidity.*index_mass_quantile|pressure.*index_mass_quantile|light.*index_mass_quantile",
+    "temperature|accel_|gyro_|microphone|humidity|pressure|light"
   ],
 
   "feature_names": [
@@ -166,6 +167,34 @@
     "TI SensorTag 33",
     "TI SensorTag 535",
     "TI SensorTag 709",
+    "ALL"
+  ],
+
+  "device_types": [
+    "Mite",
+    "Mite",
+    "Mite",
+    "Mite",
+    "Mite",
+    "Mite",
+    "Matrix",
+    "Matrix",
+    "Matrix",
+    "DialogIoT",
+    "DialogIoT",
+    "DialogIoT",
+    "TI SensorTag",
+    "TI SensorTag",
+    "TI SensorTag",
+    "XDK",
+    "XDK",
+    "XDK",
+    "Mite",
+    "Mite",
+    "Mite",
+    "TI SensorTag",
+    "TI SensorTag",
+    "TI SensorTag",
     "ALL"
   ],
 
@@ -244,9 +273,9 @@
       "DialogIoT 591844595": "Dialog 1 Sink",
       "DialogIoT 591844599": "Dialog 2 Coffee",
       "DialogIoT 591844765": "Dialog 3 Table",
-      "TI SensorTag 33": "SensorTag X A",
-      "TI SensorTag 535": "SensorTag Y B",
-      "TI SensorTag 709": "SensorTag Z C",
+      "TI SensorTag 33": "SensorTag 3 Table",
+      "TI SensorTag 535": "SensorTag 2 Sink",
+      "TI SensorTag 709": "SensorTag 1 Coffee",
       "xdk_1": "XDK 1 Sink",
       "xdk_2": "XDK 2 Coffee",
       "xdk_3": "XDK 3 Table"

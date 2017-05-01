@@ -1,15 +1,12 @@
 import pandas as pd
-from .data_split import split_one_df
 from sklearn.preprocessing import StandardScaler
 from .classification import classify, log_of_classification_results, \
     fit_pipeline
-from .filtering import filter_by_features, filter_by_activities, \
-    filter_by_activities_transfer
+from .filtering import filter_by_features, filter_by_activities
 from .data_split import X_sort, take_percentage_of_data, \
         take_multiple_percentages_of_data
 from .domain_adaptation import easy_domain_adaptation_update_dataframes
 from .configuration import read_configuration
-import json
 
 
 configuration = read_configuration()
@@ -149,14 +146,14 @@ def test_transfer(source_device, target_device,
             scale=scale_domains_independently,
             with_feature_selection=with_feature_selection)
 
-
     # do easy domain adaptation
     if use_easy_domain_adaptation:
         df_source, df_target = easy_domain_adaptation_update_dataframes(
                 df_source, df_target)
 
     df_source, df_source_labels, df_target, df_target_labels = \
-            split_transfer_datasets(df_source, df_source_labels,
+        split_transfer_datasets(
+                    df_source, df_source_labels,
                     df_target, df_target_labels,
                     training_source_data_ratio=training_source_data_ratio,
                     testing_target_data_ratio=testing_target_data_ratio,
@@ -172,7 +169,9 @@ def test_transfer(source_device, target_device,
         if ppl is None:
             return None
 
-        y_target = ppl.predict(X_test)
+        y_target = df_target_labels['label']
+
+        y_target_pred = ppl.predict(df_target)
         r = log_of_classification_results(y_target, y_target_pred)
         return r
     except ValueError as ex:
@@ -214,8 +213,8 @@ def split_transfer_datasets(df_source, df_source_labels,
 
 
 def build_pipeline(df, df_labels,
-                  scale=True,
-                  clf_name='RandomForestClassifier'):
+                   scale=True,
+                   clf_name='RandomForestClassifier'):
     y = df_labels['label']
 
     ppl = fit_pipeline(df, y, clf_name, scale=scale)
@@ -224,12 +223,12 @@ def build_pipeline(df, df_labels,
 
 
 def read_and_filter_dataset(datasets, devices,
-        use_features=None,
-        force_columns=None,
-        use_columns=None,
-        use_activities=None,
-        scale=True,
-        with_feature_selection=False):
+                            use_features=None,
+                            force_columns=None,
+                            use_columns=None,
+                            use_activities=None,
+                            scale=True,
+                            with_feature_selection=False):
     # read datasets
     df, df_labels = read_dataset(
             datasets,
@@ -269,6 +268,7 @@ def read_and_filter_dataset(datasets, devices,
 
     return df, df_labels
 
+
 def read_dataset(datasets, devices, with_feature_selection=False):
     dfs = []
     dfs_labels = []
@@ -300,9 +300,11 @@ def read_dataset(datasets, devices, with_feature_selection=False):
 
     return concat_and_reindex(dfs, dfs_labels)
 
+
 def set_dataset_folder(folder):
     global dataset_folder
     dataset_folder = folder
+
 
 def concat_and_reindex(dfs, dfs_labels):
     if len(dfs) == 1:
