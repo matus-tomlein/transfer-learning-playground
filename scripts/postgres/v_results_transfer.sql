@@ -16,6 +16,7 @@ activities.id AS activities_id,
 accuracy,
 feature_selection,
 scaled_independently,
+source_training_data,
 target_training_data,
 easy_domain_adaptation
 
