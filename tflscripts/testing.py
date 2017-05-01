@@ -1,17 +1,19 @@
 import pandas as pd
-from ml.data_split import split_one_df
+from .data_split import split_one_df
 from sklearn.preprocessing import StandardScaler
-from ml.classification import classify, log_of_classification_results
-from ml.filtering import filter_by_features, filter_by_activities, \
+from .classification import classify, log_of_classification_results, \
+    fit_pipeline
+from .filtering import filter_by_features, filter_by_activities, \
     filter_by_activities_transfer
-from ml.data_split import X_sort, take_percentage_of_data, \
+from .data_split import X_sort, take_percentage_of_data, \
         take_multiple_percentages_of_data
-from ml.domain_adaptation import easy_domain_adaptation_update_dataframes
+from .domain_adaptation import easy_domain_adaptation_update_dataframes
+from .configuration import read_configuration
 import json
 
 
-with open('configuration.json') as f:
-    configuration = json.load(f)
+configuration = read_configuration()
+dataset_folder = '../datasets/'
 
 
 def add_empty_columns_if_missing(df, columns):
@@ -74,35 +76,16 @@ def test_without_transfer(device,
                           training_source_data_ratio=0.7,
                           clf_name='RandomForestClassifier'):
     # read dataset
-    df, df_labels = read_dataset(
+    df, df_labels = read_and_filter_dataset(
             dataset,
             device,
+            use_features=use_features,
+            force_columns=force_columns,
+            use_columns=use_columns,
+            use_activities=use_activities,
+            scale=False,
             with_feature_selection=with_feature_selection)
 
-    # filter features
-    if use_features is not None:
-        df, __ = filter_by_features(df_source=df,
-                                    use_features=use_features)
-        if df is None:
-            return None
-
-    if force_columns is not None:
-        use_columns = force_columns
-        add_empty_columns_if_missing(df, force_columns)
-
-    # filter specific columns
-    if use_columns is not None:
-        try:
-            df = df[use_columns]
-        except KeyError as ex:
-            print('No such columns found')
-            return None
-
-    # filter activities
-    if use_activities is not None:
-        df, df_labels = filter_by_activities(df, df_labels, use_activities)
-        if df is None:
-            return None
     # X_train, y_train, X_test, y_test = split_one_df(df, df_labels, 0.7)
 
     # split into training and testing
@@ -147,51 +130,61 @@ def test_transfer(source_device, target_device,
                   use_easy_domain_adaptation=False,
                   clf_name='RandomForestClassifier'):
     # read datasets
-    df_source, df_source_labels = read_dataset(
+    df_source, df_source_labels = read_and_filter_dataset(
             source_dataset,
             source_device,
+            use_features=use_features,
+            force_columns=force_columns,
+            use_columns=use_columns,
+            use_activities=use_activities,
+            scale=scale_domains_independently,
             with_feature_selection=with_feature_selection)
-    df_target, df_target_labels = read_dataset(
+    df_target, df_target_labels = read_and_filter_dataset(
             target_dataset,
             target_device,
+            use_features=use_features,
+            force_columns=force_columns,
+            use_columns=use_columns,
+            use_activities=use_activities,
+            scale=scale_domains_independently,
             with_feature_selection=with_feature_selection)
 
-    # filter features
-    if use_features is not None:
-        df_source, df_target = filter_by_features(df_source=df_source,
-                                                  df_target=df_target,
-                                                  use_features=use_features)
-        if df_source is None:
-            return None
-
-    if force_columns is not None:
-        use_columns = force_columns
-        add_empty_columns_if_missing(df_source, force_columns)
-        add_empty_columns_if_missing(df_target, force_columns)
-
-    # filter specific columns
-    if use_columns is not None:
-        try:
-            df_source = df_source[use_columns]
-            df_target = df_target[use_columns]
-        except KeyError as ex:
-            print('No such columns found')
-            return None
-
-    # filter activities
-    if use_activities is not None:
-        df_source, df_source_labels, df_target, df_target_labels = \
-            filter_by_activities_transfer(
-                df_source, df_source_labels, df_target,
-                df_target_labels, use_activities)
-        if df_source is None:
-            return None
 
     # do easy domain adaptation
     if use_easy_domain_adaptation:
         df_source, df_target = easy_domain_adaptation_update_dataframes(
                 df_source, df_target)
 
+    df_source, df_source_labels, df_target, df_target_labels = \
+            split_transfer_datasets(df_source, df_source_labels,
+                    df_target, df_target_labels,
+                    training_source_data_ratio=training_source_data_ratio,
+                    testing_target_data_ratio=testing_target_data_ratio,
+                    training_target_data_ratio=training_target_data_ratio)
+
+    try:
+        ppl = build_pipeline(
+                df=df_source,
+                df_labels=df_source_labels,
+                scale=not scale_domains_independently,
+                clf_name=clf_name)
+
+        if ppl is None:
+            return None
+
+        y_target = ppl.predict(X_test)
+        r = log_of_classification_results(y_target, y_target_pred)
+        return r
+    except ValueError as ex:
+        print('in classification', ex)
+        return None
+
+
+def split_transfer_datasets(df_source, df_source_labels,
+                            df_target, df_target_labels,
+                            training_source_data_ratio=0.6,
+                            testing_target_data_ratio=0.6,
+                            training_target_data_ratio=0.0):
     # filter samples
     df_source, df_source_labels = take_percentage_of_data(
             df_source,
@@ -217,35 +210,73 @@ def test_transfer(source_device, target_device,
                 df_target_labels,
                 testing_target_data_ratio)
 
+    return df_source, df_source_labels, df_target, df_target_labels
+
+
+def build_pipeline(df, df_labels,
+                  scale=True,
+                  clf_name='RandomForestClassifier'):
+    y = df_labels['label']
+
+    ppl = fit_pipeline(df, y, clf_name, scale=scale)
+
+    return ppl
+
+
+def read_and_filter_dataset(datasets, devices,
+        use_features=None,
+        force_columns=None,
+        use_columns=None,
+        use_activities=None,
+        scale=True,
+        with_feature_selection=False):
+    # read datasets
+    df, df_labels = read_dataset(
+            datasets,
+            devices,
+            with_feature_selection=with_feature_selection)
+
+    # filter features
+    if use_features is not None:
+        df, __ = filter_by_features(df_source=df,
+                                    use_features=use_features)
+        if df is None:
+            return None, None
+
+    if force_columns is not None:
+        use_columns = force_columns
+        add_empty_columns_if_missing(df, force_columns)
+
+    # filter specific columns
+    if use_columns is not None:
+        try:
+            df = df[use_columns]
+        except KeyError as ex:
+            print('No such columns found')
+            return None, None
+
+    # filter activities
+    if use_activities is not None:
+        df, df_labels = filter_by_activities(df, df_labels, use_activities)
+        if df is None:
+            return None, None
     # sort feature columns
-    X_source = X_sort(df_source)
-    X_target = X_sort(df_target)
+    df = X_sort(df)
 
     # scale domains
-    if scale_domains_independently:
-        df_source = StandardScaler().fit_transform(df_source)
-        df_target = StandardScaler().fit_transform(df_target)
+    if scale:
+        df[df.columns] = StandardScaler().fit_transform(df[df.columns])
 
-    y_source = df_source_labels['label']
-    y_target = df_target_labels['label']
-
-    try:
-        y_target_pred = classify(X_source, y_source, X_target, clf_name,
-                                 scale=not scale_domains_independently)
-    except ValueError as ex:
-        print('in classification', ex)
-        return None
-
-    r = log_of_classification_results(y_target, y_target_pred)
-    return r
-
+    return df, df_labels
 
 def read_dataset(datasets, devices, with_feature_selection=False):
     dfs = []
     dfs_labels = []
 
+    global dataset_folder
+
     for dataset in datasets.split(','):
-        dataset_path = '../datasets/' + dataset + '-features/'
+        dataset_path = dataset_folder + dataset + '-features/'
 
         device_list = []
         if devices == 'ALL':
@@ -269,6 +300,9 @@ def read_dataset(datasets, devices, with_feature_selection=False):
 
     return concat_and_reindex(dfs, dfs_labels)
 
+def set_dataset_folder(folder):
+    global dataset_folder
+    dataset_folder = folder
 
 def concat_and_reindex(dfs, dfs_labels):
     if len(dfs) == 1:

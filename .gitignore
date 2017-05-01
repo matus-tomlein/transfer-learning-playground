@@ -62,3 +62,6 @@ __pycache__
 .#*
 .coverage
 *.swp
+
+typescript
+/results/

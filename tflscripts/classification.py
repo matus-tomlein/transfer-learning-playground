@@ -10,7 +10,7 @@ from sklearn.naive_bayes import GaussianNB, BernoulliNB
 from sklearn import tree
 from sklearn.linear_model import LogisticRegression
 
-from ml.impute_inf import ImputeInf
+from .impute_inf import ImputeInf
 
 
 def classifier_by_name(clf_name):
