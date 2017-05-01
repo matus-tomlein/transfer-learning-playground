@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
-import json
 import csv
 import traceback
 
-from ml.parallelization import start_workers
-from ml.testing import test_with_or_without_transfer
+from tflscripts import start_workers, test_with_or_without_transfer, \
+        read_configuration
 
 output_file = '/'.join([
+    '..',
     'results',
     'results_transfer.csv'
 ])
@@ -21,16 +21,16 @@ datasets = {
     'robotics-final'
 }
 
-devices = [
-    'ALL'
-]
+# devices = [
+#     'ALL'
+# ]
 
 features = [
-    "accel_.*index_mass_quantile",
-    "microphone.*index_mass_quantile",
-    "accel_.*index_mass_quantile|microphone.*index_mass_quantile|mag_.*index_mass_quantile",
-    "accel_.*index_mass_quantile|mag_.*index_mass_quantile",
-    "temperature.*index_mass_quantile|accel_.*index_mass_quantile|gyro_.*index_mass_quantile|microphone.*index_mass_quantile|humidity.*index_mass_quantile|pressure.*index_mass_quantile|light.*index_mass_quantile"
+    "accel_",
+    "microphone",
+    "accel_|microphone|mag_",
+    "accel_|mag_",
+    "temperature|accel_|gyro_|microphone|humidity|pressure|light"
 ]
 
 classifiers = [
@@ -43,8 +43,7 @@ use_activities_with_length = [
 
 
 # the configuration file is used to find indices to represent devices and other
-with open('configuration.json') as f:
-    configuration = json.load(f)
+configuration = read_configuration()
 
 
 # write headers to the CSV file
@@ -76,6 +75,10 @@ def worker(q):
         for target_dataset in datasets:
             target_dataset_i = configuration['datasets'].index(target_dataset)
 
+            if source_dataset == target_dataset:
+                continue
+
+
             for source_device in configuration['device_roles'][source_dataset]:
 
                 for target_device in configuration['device_roles'][target_dataset]:
@@ -83,9 +86,12 @@ def worker(q):
                     source_i = configuration['devices'].index(source_device)
                     target_i = configuration['devices'].index(target_device)
 
-                    if source_dataset != target_dataset or source_device != \
-                            target_device:
+                    source_device_type = configuration['device_types'][source_i]
+                    target_device_type = configuration['device_types'][target_i]
+
+                    if source_device_type != target_device_type:
                         continue
+
 
                     for activity_i, activities in \
                             enumerate(configuration['activity_sets']):
@@ -100,48 +106,48 @@ def worker(q):
                             for clf_name in classifiers:
                                 clf_i = configuration['classifiers'].index(clf_name)
 
-                                for r in range(7):
-                                    target_data_ratio = 0.0
-                                    source_training_data = r / 10.0 + 0.1
+                                target_data_ratio = 0.0
+                                source_training_data = 0.6
 
-                                    for repeat in range(10):
-                                        with_feature_selection = False
-                                        scale_independently = False
-                                        use_easy_domain_adaptation = False
+                                for repeat in range(10):
+                                    with_feature_selection = False
+                                    scale_independently = False
+                                    use_easy_domain_adaptation = False
 
-                                        try:
-                                            report = test_with_or_without_transfer(
-                                                    source_device=source_device,
-                                                    target_device=target_device,
-                                                    source_dataset=source_dataset,
-                                                    target_dataset=target_dataset,
-                                                    use_features=use_features,
-                                                    use_activities=activities_i,
-                                                    training_source_data_ratio=source_training_data,
-                                                    training_target_data_ratio=target_data_ratio,
-                                                    with_feature_selection=with_feature_selection,
-                                                    scale_domains_independently=scale_independently,
-                                                    use_easy_domain_adaptation=use_easy_domain_adaptation,
-                                                    clf_name=clf_name)
-                                            if report is None:
-                                                continue
+                                    try:
+                                        report = test_with_or_without_transfer(
+                                                source_device=source_device,
+                                                target_device=target_device,
+                                                source_dataset=source_dataset,
+                                                target_dataset=target_dataset,
+                                                use_features=use_features,
+                                                use_activities=activities_i,
+                                                training_source_data_ratio=source_training_data,
+                                                training_target_data_ratio=target_data_ratio,
+                                                with_feature_selection=with_feature_selection,
+                                                scale_domains_independently=scale_independently,
+                                                use_easy_domain_adaptation=use_easy_domain_adaptation,
+                                                clf_name=clf_name)
+                                        if report is None:
+                                            continue
 
-                                            report = [
-                                                source_i, target_i,
-                                                source_dataset_i, target_dataset_i,
-                                                activity_i,
-                                                feature_i, clf_i,
-                                                1 if with_feature_selection else 0,
-                                                1 if scale_independently else 0,
-                                                target_data_ratio,
-                                                source_training_data,
-                                                1 if use_easy_domain_adaptation else 0
-                                            ] + report
-                                            report = [str(i) for i in report]
+                                        report = [
+                                            source_i, target_i,
+                                            source_dataset_i, target_dataset_i,
+                                            activity_i,
+                                            feature_i, clf_i,
+                                            1 if with_feature_selection else 0,
+                                            1 if scale_independently else 0,
+                                            target_data_ratio,
+                                            source_training_data,
+                                            1 if use_easy_domain_adaptation else 0
+                                        ] + report
+                                        report = [str(i) for i in report]
 
-                                            q.put(report)
-                                        except Exception as error:
-                                            print('ex', str(error))
+                                        q.put(report)
+                                    except Exception as error:
+                                        print('ex', str(error))
+                                        # traceback.print_exc()
 
 
 start_workers(worker=worker, output_file=output_file, num_jobs=2)
