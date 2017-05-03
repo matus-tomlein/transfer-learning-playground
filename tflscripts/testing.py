@@ -144,7 +144,14 @@ def test_transfer(source_device, target_device,
             use_columns=use_columns,
             use_activities=use_activities,
             scale=scale_domains_independently,
-            with_feature_selection=with_feature_selection)
+            with_feature_selection=False)
+
+    # select the features
+    try:
+        df_target = df_target[df_source.columns]
+    except KeyError as ex:
+        print('Target doesnt provide the same columns as source')
+        return None
 
     # do easy domain adaptation
     if use_easy_domain_adaptation:

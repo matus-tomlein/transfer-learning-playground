@@ -75,10 +75,6 @@ def worker(q):
         for target_dataset in datasets:
             target_dataset_i = configuration['datasets'].index(target_dataset)
 
-            if source_dataset == target_dataset:
-                continue
-
-
             for source_device in configuration['device_roles'][source_dataset]:
 
                 for target_device in configuration['device_roles'][target_dataset]:
@@ -86,12 +82,8 @@ def worker(q):
                     source_i = configuration['devices'].index(source_device)
                     target_i = configuration['devices'].index(target_device)
 
-                    source_device_type = configuration['device_types'][source_i]
-                    target_device_type = configuration['device_types'][target_i]
-
-                    if source_device_type != target_device_type:
-                        continue
-
+                    # source_device_type = configuration['device_types'][source_i]
+                    # target_device_type = configuration['device_types'][target_i]
 
                     for activity_i, activities in \
                             enumerate(configuration['activity_sets']):
@@ -110,7 +102,7 @@ def worker(q):
                                 source_training_data = 0.6
 
                                 for repeat in range(10):
-                                    with_feature_selection = False
+                                    with_feature_selection = repeat % 2 == 0
                                     scale_independently = False
                                     use_easy_domain_adaptation = False
 
