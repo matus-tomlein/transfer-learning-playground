@@ -5,10 +5,12 @@ import random
 import json
 import csv
 
-from ml.parallelization import start_workers
-from ml.testing import test_with_or_without_transfer
+from tflscripts import read_configuration
+from tflscripts import start_workers
+from tflscripts import test_with_or_without_transfer
 
 output_file = '/'.join([
+    '..',
     'results',
     'results_feature_testing.csv'
 ])
@@ -42,8 +44,7 @@ with open('tsfresh_feature_types.json') as f:
 
 
 # the configuration file is used to find indices to represent devices and other
-with open('configuration.json') as f:
-    configuration = json.load(f)
+configuration = read_configuration()
 
 
 # write headers to the CSV file
@@ -88,11 +89,9 @@ def worker(q):
             # computes the classification performance
             for ds_i, source_dataset in enumerate(ds):
                 source_dataset_i = configuration['datasets'].index(source_dataset)
-                source_dataset_path = '../datasets/' + source_dataset + '-features/'
 
                 for target_dataset in ds:
                     target_dataset_i = configuration['datasets'].index(target_dataset)
-                    target_dataset_path = '../datasets/' + target_dataset + '-features/'
 
                     source_roles = configuration['device_roles'][source_dataset]
                     for source_device in source_roles:
@@ -118,15 +117,15 @@ def worker(q):
                                 if not len(activities) in use_activities_with_length:
                                     continue
 
-                                for repeat in range(20):
-                                    scale_independently = repeat % 2 == 0
+                                for repeat in range(10):
+                                    scale_independently = False
 
                                     try:
                                         report = test_with_or_without_transfer(
                                                 source_device=source_device,
                                                 target_device=target_device,
-                                                source_dataset_path=source_dataset_path,
-                                                target_dataset_path=target_dataset_path,
+                                                source_dataset=source_dataset,
+                                                target_dataset=target_dataset,
                                                 use_columns=use_columns,
                                                 use_activities=activities_i)
                                         if report is None:
