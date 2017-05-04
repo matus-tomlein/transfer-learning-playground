@@ -59,8 +59,8 @@ headers += tsfresh_feature_types
 
 features = {
     # "accel_": ['accel_x', 'accel_y', 'accel_z'],
-    "microphone": ['microphone'],
-    "mag_": ['mag_x', 'mag_y', 'mag_z']
+    "microphone": ['microphone']
+    # "mag_": ['mag_x', 'mag_y', 'mag_z']
 }
 
 with open(output_file, "w") as f:
