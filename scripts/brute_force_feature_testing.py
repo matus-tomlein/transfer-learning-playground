@@ -60,8 +60,8 @@ headers += tsfresh_feature_types
 
 features = {
     # "accel_": ['accel_x', 'accel_y', 'accel_z'],
-    "microphone": ['microphone']
-    # "mag_": ['mag_x', 'mag_y', 'mag_z']
+    "microphone": ['microphone'],
+    "mag_": ['mag_x', 'mag_y', 'mag_z']
 }
 
 with open(output_file, "w") as f:
@@ -106,7 +106,7 @@ def worker(q):
                             source_i = configuration['devices'].index(source_device)
                             target_i = configuration['devices'].index(target_device)
 
-                            if source_dataset == target_dataset and source_device == \
+                            if source_dataset != target_dataset or source_device != \
                                     target_device:
                                 continue
 
