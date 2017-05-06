@@ -73,12 +73,12 @@ with open(output_file, "w") as f:
 
 
 def worker(q):
-    for feature_key in features:
-        feature_i = configuration['features'].index(feature_key)
+    for sample_i in range(number_of_samples):
+        feature_types = random.sample(tsfresh_feature_types,
+                                      len(tsfresh_feature_types))[:10]
 
-        for sample_i in range(number_of_samples):
-            feature_types = random.sample(tsfresh_feature_types,
-                                          len(tsfresh_feature_types))[:10]
+        for feature_key in features:
+            feature_i = configuration['features'].index(feature_key)
 
             use_columns = []
             for f in features[feature_key]:
