@@ -12,7 +12,7 @@ from tflscripts import test_with_or_without_transfer
 output_file = '/'.join([
     '..',
     'results',
-    'results_feature_testing.csv'
+    'results_feature_testing_1.csv'
 ])
 
 datasets = [
