@@ -83,6 +83,9 @@ def test_without_transfer(device,
             scale=False,
             with_feature_selection=with_feature_selection)
 
+    if df is None:
+        return None
+
     # X_train, y_train, X_test, y_test = split_one_df(df, df_labels, 0.7)
 
     # split into training and testing
@@ -145,6 +148,9 @@ def test_transfer(source_device, target_device,
             use_activities=use_activities,
             scale=scale_domains_independently,
             with_feature_selection=False)
+
+    if df_source is None or df_target is None:
+        return None
 
     # select the features
     try:
@@ -265,6 +271,7 @@ def read_and_filter_dataset(datasets, devices,
     if use_activities is not None:
         df, df_labels = filter_by_activities(df, df_labels, use_activities)
         if df is None:
+            print('Activities not found')
             return None, None
     # sort feature columns
     df = X_sort(df)
