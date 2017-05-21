@@ -71,6 +71,6 @@ def add_fft_features_for(df, sensor_stream):
 
     features = pd.DataFrame(features_from_fft(values_df))
     features.index = df.index
-    features.columns = [sensor_stream + str(col) for col in features.columns]
+    features.columns = [sensor_stream + '_feat_' + str(col) for col in features.columns]
 
     return pd.concat([df, features], axis=1)
