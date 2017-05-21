@@ -7,3 +7,4 @@ from .impute_inf import *
 from .plotting import *
 from .testing import *
 from .configuration import *
+from .features import *
