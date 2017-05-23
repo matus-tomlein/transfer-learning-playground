@@ -20,7 +20,7 @@ def read_complete_dataset(dataset,
                           device,
                           sensor_streams,
                           activities,
-                          anomaly_threshold=0):
+                          anomaly_percentile=100):
 
     global dataset_folder
 
@@ -35,15 +35,18 @@ def read_complete_dataset(dataset,
     activities_i = [configuration['activities'].index(a) for a in activities]
     df = df.loc[df.label.isin(activities_i)]
 
-    if anomaly_threshold > 0:
-        null_mean = null_df[value_columns].mean()
-        null_std = null_df[value_columns].std()
+    null_mean = null_df[value_columns].mean()
+    null_std = null_df[value_columns].std()
+
+    if anomaly_percentile < 100:
         anomalies = (((df[value_columns] - null_mean) / null_std) ** 2).sum(axis=1).apply(np.sqrt)
         df['anomalies'] = anomalies
 
-    df[value_columns] = StandardScaler().fit_transform(df[value_columns])
+    df[value_columns] = (df[value_columns] - null_mean) / null_std
 
-    if anomaly_threshold > 0:
+    if anomaly_percentile < 100:
+        anomaly_threshold = np.percentile(df.anomalies.values, 100 - anomaly_percentile)
+        print(anomaly_threshold)
         df = df.loc[df.anomalies > anomaly_threshold]
 
     return df[value_columns].values, df.label.values
