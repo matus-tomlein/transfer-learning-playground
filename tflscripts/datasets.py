@@ -52,6 +52,15 @@ def read_complete_dataset(dataset,
     return df[value_columns].values, df.label.values
 
 
+def get_anomalies(df, value_columns):
+    null_df = df.loc[df.label == configuration['activities'].index('Null')]
+    null_mean = null_df[value_columns].mean()
+    null_std = null_df[value_columns].std()
+
+    anomalies = (((df[value_columns] - null_mean) / null_std) ** 2).sum(axis=1).apply(np.sqrt)
+    return anomalies
+
+
 def read_and_filter_dataset(datasets, devices,
                             use_features=None,
                             force_columns=None,
