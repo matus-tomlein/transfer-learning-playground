@@ -9,3 +9,4 @@ from .testing import *
 from .configuration import *
 from .features import *
 from .datasets import *
+from .anomalies import *
