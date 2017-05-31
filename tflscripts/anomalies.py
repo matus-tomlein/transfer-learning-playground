@@ -76,8 +76,13 @@ class ChannelAnomalyComputer:
             target_mean = np.mean(target_history, axis=0)
             history_mean = np.mean(self.background_history, axis=0)
             history_stdev = np.std(self.background_history, axis=0)
+
             zscore = (target_mean - history_mean) / history_stdev
-            dist = np.sqrt(np.nan_to_num(zscore * zscore).sum())
+            zscore[zscore == np.inf] = 0
+            zscore[zscore == -np.inf] = 0
+
+            zscore = np.nan_to_num(zscore)
+            dist = np.sqrt(zscore * zscore).sum()
             return dist
 
         else:
