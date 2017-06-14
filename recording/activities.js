@@ -34,7 +34,12 @@ let activityTypes = [
   'Room lights off',
   'Knocking',
   'Frequency sweep',
-  'Phone vibrating'
+  'Phone vibrating',
+  'Vacuum cleaning',
+  'Blender running',
+  'Listening to music',
+  'Soap dispensed',
+  'Microwave done chime'
 ];
 
 function start() {
