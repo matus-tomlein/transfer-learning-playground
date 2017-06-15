@@ -32,17 +32,19 @@ def read_complete_dataset(dataset,
 
     null_df = df.loc[df.label == configuration['activities'].index('Null')]
 
-    activities_i = [configuration['activities'].index(a) for a in activities]
-    df = df.loc[df.label.isin(activities_i)]
-
     null_mean = null_df[value_columns].mean()
     null_std = null_df[value_columns].std()
+    df[value_columns] = (df[value_columns] - null_mean) / null_std
+    df = df.replace([np.inf, -np.inf, np.nan], 0)
 
     if anomaly_percentile < 100:
-        anomalies = (((df[value_columns] - null_mean) / null_std) ** 2).sum(axis=1).apply(np.sqrt)
+        anomalies = (df[value_columns] ** 2).sum(axis=1).apply(np.sqrt)
         df['anomalies'] = anomalies
 
-    df[value_columns] = (df[value_columns] - null_mean) / null_std
+    df[value_columns] = StandardScaler().fit_transform(df[value_columns])
+
+    activities_i = [configuration['activities'].index(a) for a in activities]
+    df = df.loc[df.label.isin(activities_i)]
 
     if anomaly_percentile < 100:
         anomaly_threshold = np.percentile(df.anomalies.values, 100 - anomaly_percentile)

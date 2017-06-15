@@ -1,5 +1,6 @@
 from .classification import classify, log_of_classification_results, \
     fit_pipeline
+import pickle
 from .data_split import take_percentage_of_data, \
         take_multiple_percentages_of_data
 from .domain_adaptation import easy_domain_adaptation_update_dataframes
@@ -225,3 +226,70 @@ def build_pipeline(df, df_labels,
     ppl = fit_pipeline(df, y, clf_name, scale=scale)
 
     return ppl
+
+
+class TestResult:
+    def __init__(self,
+
+                 source_device=None,
+                 source_dataset=None,
+
+                 target_device=None,
+                 target_dataset=None,
+
+                 label=None,
+                 columns=None,
+
+                 predicted=None,
+                 actual=None,
+                 actual_with_all_labels=None,
+                 window_size=None,
+                 classifier=None,
+
+                 features=None):
+        self.source_device = source_device
+        self.source_dataset = source_dataset
+        self.target_device = target_device
+        self.target_dataset = target_dataset
+
+        self.label = label
+        self.columns = columns
+        self.window_size = window_size
+        self.features = features
+        self.classifier = classifier
+
+        self.predicted = predicted
+        self.actual = actual
+        self.actual_with_all_labels = actual_with_all_labels
+
+    def label_name(self):
+        return configuration['activities'][self.label]
+
+
+class TestSet:
+    def __init__(self, name,
+                 path='/home/giotto/transfer-learning-playground/results/'):
+        self.name = name
+        self.file_name = path + self.name + '.pkl'
+
+    def add_result(self, result):
+        output = open(self.file_name, 'ab')
+        pickle.dump(result, output)
+        output.close()
+        print('Added result from', result.source_device,
+              result.source_dataset,
+              'to', result.target_device,
+              result.target_dataset)
+
+    def get_results(self):
+        input = open(self.file_name, 'rb')
+        results = []
+        try:
+            while True:
+                result = pickle.load(input)
+                results.append(result)
+
+        except (EOFError) as e:
+            input.close()
+
+        return results
