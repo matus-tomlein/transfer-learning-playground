@@ -65,3 +65,28 @@ def log_of_classification_results(y_test, y_pred):
     f1 = [i.tolist() for i in precision_recall_fscore_support(y_test, y_pred)]
     matrix = confusion_matrix(y_test, y_pred).tolist()
     return [accuracy_score(y_test, y_pred), json.dumps(f1), json.dumps(matrix)]
+
+def smooth_predictions(predicted, slide=3):
+    smoothed = []
+
+    for i, prediction in enumerate(predicted):
+        next_disagreements = [p for p in predicted[i:min(len(predicted), i + slide)] if p != prediction]
+        if len(next_disagreements) == 0:
+            smoothed.append(prediction)
+        else:
+            try:
+                window = predicted[max(0, i - slide):min(len(predicted), i + slide)]
+                smoothed.append(mode(window))
+            except:
+                try:
+                    smoothed.append(mode([p for p in window if p != -1]))
+                except:
+                    smoothed.append(prediction)
+
+    return smoothed
+
+
+def get_y_for_label(df_labels, label):
+    df_labels_modified = df_labels.copy()
+    df_labels_modified.loc[df_labels_modified.label != label, 'label'] = -1
+    return df_labels_modified['label']
