@@ -18,13 +18,14 @@ def filter_by_activities_transfer(df_source, df_source_labels, df_target,
     return df_source, df_source_labels, df_target, df_target_labels
 
 
-def filter_by_activities(df, df_labels, use_activities):
+def filter_by_activities(df, df_labels, use_activities,
+        check_all_activities=True):
     df_labels = df_labels.loc[df_labels.label.isin(use_activities)]
     df = df.loc[df.index.isin(df_labels.index)]
 
     df_activities = np.sort(df_labels.label.unique().tolist()).tolist()
     activities = np.sort(use_activities).tolist()
-    if activities != df_activities:
+    if check_all_activities and activities != df_activities:
         print('Source or target dont provide the activities')
         return None, None
 

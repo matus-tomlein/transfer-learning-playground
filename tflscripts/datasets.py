@@ -68,6 +68,7 @@ def read_and_filter_dataset(datasets, devices,
                             force_columns=None,
                             use_columns=None,
                             use_activities=None,
+                            check_all_activities=True,
                             scale=True,
                             with_feature_selection=False):
     # read datasets
@@ -97,7 +98,8 @@ def read_and_filter_dataset(datasets, devices,
 
     # filter activities
     if use_activities is not None:
-        df, df_labels = filter_by_activities(df, df_labels, use_activities)
+        df, df_labels = filter_by_activities(df, df_labels, use_activities,
+                check_all_activities=check_all_activities)
         if df is None:
             print('Activities not found')
             return None, None

@@ -82,6 +82,7 @@ def read_dataset(device, dataset):
             device,
             use_features='.*',
             use_activities=activities_i,
+            check_all_activities=False,
             scale=True,
             with_feature_selection=False)
 
@@ -126,7 +127,7 @@ def test_for_source(source_dataset, source_device):
             y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
             for classifier in classifiers:
-                print(source_dataset, source_device, classifiers, features)
+                print(source_dataset, source_device, classifier, features, label)
 
                 # test on the same domain
                 x_train_s, x_test_s, y_train_sl, y_test_sl = train_test_split(
@@ -134,7 +135,7 @@ def test_for_source(source_dataset, source_device):
                 y_train_s = tflscripts.get_y_for_label_series(y_train_sl,
                                                               label)
 
-                if label in y_test_sl and label in y_train_sl:
+                if label in y_test_sl.values and label in y_train_sl.values:
                     ppl = fit_pipeline(classifier, x_train_s, y_train_s)
                     predicted = ppl.predict(x_test_s)
 
@@ -155,10 +156,10 @@ def test_for_source(source_dataset, source_device):
                         features=features
                     )
                     test_set.add_result(result)
-
-                    ppl = fit_pipeline(classifier, x_train, y_train)
                 else:
                     print('Couldnt split so that label is both in train and test set')
+
+                ppl = fit_pipeline(classifier, x_train, y_train)
 
                 # test with transfer
                 for target_dataset in datasets:

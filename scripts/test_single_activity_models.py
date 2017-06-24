@@ -20,3 +20,5 @@ for source_dataset in datasets:
 
     for source_device in devices:
         q.enqueue(test_for_source, source_dataset, source_device)
+        break
+    break
