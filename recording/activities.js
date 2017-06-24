@@ -37,7 +37,7 @@ let activityTypes = [
   'Phone vibrating',
   'Vacuum cleaning',
   'Blender running',
-  'Listening to music',
+  'Alarm',
   'Soap dispensed',
   'Microwave done chime'
 ];

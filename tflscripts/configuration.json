@@ -23,10 +23,9 @@
     "Phone vibrating",
     "Vacuum cleaning",
     "Blender running",
-    "Listening to music",
+    "Alarm",
     "Soap dispensed",
-    "Microwave done chime",
-    "Alarm"
+    "Microwave done chime"
   ],
 
   "activity_sets": [
