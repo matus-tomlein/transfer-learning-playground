@@ -172,7 +172,10 @@
     "TI SensorTag 33",
     "TI SensorTag 535",
     "TI SensorTag 709",
-    "ALL"
+    "ALL",
+    "128.237.247.190",
+    "128.237.227.76",
+    "128.237.250.218"
   ],
 
   "device_types": [
@@ -200,7 +203,10 @@
     "TI SensorTag",
     "TI SensorTag",
     "TI SensorTag",
-    "ALL"
+    "ALL",
+    "Mite",
+    "Mite",
+    "Mite"
   ],
 
   "datasets": [
@@ -214,7 +220,9 @@
     "synergy-final-iter3",
     "synergy-final-iter1,synergy-final-iter2,synergy-final-iter3",
     "scott-final-iter1,synergy-final-iter1,synergy-final-iter2",
-    "scott-final-iter1,robotics-final"
+    "scott-final-iter1,robotics-final",
+    "synergy-final-iter4",
+    "synergy-final-iter5"
   ],
 
   "device_roles": {
@@ -271,7 +279,7 @@
     "synergy-final-iter3": {
       "128.237.234.0": "Mite 1 Table",
       "128.237.237.122": "Mite 2 Sink",
-      "128.237.239.234": "Mite 4 Right",
+      "128.237.239.234": "Mite 4 Coffee",
       "Matrix b827eb96f31a": "Matrix 1 Table",
       "Matrix b827ebe6e0f8": "Matrix 2 Sink",
       "Matrix b827eb41f96f": "Matrix 3 Coffee",
@@ -284,6 +292,30 @@
       "xdk_1": "XDK 1 Sink",
       "xdk_2": "XDK 2 Coffee",
       "xdk_3": "XDK 3 Table"
+    },
+
+    "synergy-final-iter4": {
+      "128.237.247.190": "Mite 1 Table",
+      "128.237.227.76": "Mite 2 Sink",
+      "128.237.250.218": "Mite 4 Coffee",
+      "Matrix b827eb96f31a": "Matrix 1 Table",
+      "Matrix b827ebe6e0f8": "Matrix 2 Sink",
+      "Matrix b827eb41f96f": "Matrix 3 Coffee",
+      "xdk_1": "XDK 1 Sink",
+      "xdk_2": "XDK 2 Coffee",
+      "xdk_3": "XDK 3 Table"
+    },
+
+    "synergy-final-iter5": {
+      "128.237.247.190": "Mite 1 Table",
+      "128.237.227.76": "Mite 2 Coffee",
+      "128.237.250.218": "Mite 4 Sink",
+      "Matrix b827eb96f31a": "Matrix 1 Sink",
+      "Matrix b827ebe6e0f8": "Matrix 2 Coffee",
+      "Matrix b827eb41f96f": "Matrix 3 Table",
+      "xdk_1": "XDK 1 Coffee",
+      "xdk_2": "XDK 2 Table",
+      "xdk_3": "XDK 3 Sink"
     },
 
     "scott-final-iter1": {
