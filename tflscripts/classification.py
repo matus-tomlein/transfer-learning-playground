@@ -90,3 +90,9 @@ def get_y_for_label(df_labels, label):
     df_labels_modified = df_labels.copy()
     df_labels_modified.loc[df_labels_modified.label != label, 'label'] = -1
     return df_labels_modified['label']
+
+
+def get_y_for_label_series(series, label):
+    series_modified = series.copy()
+    series_modified.loc[series_modified != label] = -1
+    return series_modified

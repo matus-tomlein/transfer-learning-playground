@@ -7,6 +7,10 @@ from sklearn.preprocessing import Imputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
+from sklearn.model_selection import train_test_split
+from redis import Redis
+from rq import Queue
+import sys
 
 activities = [
     "Dishes",
@@ -17,11 +21,19 @@ activities = [
     "Chopping food",
     "Conversation",
     "Eating popcorn",
+    "Microwave door opened",
+    "Microwave door closed",
+    "Cupboard door opened",
+    "Cupboard door closed",
+    "Microwave button press",
+    "Taking ice",
     "Knocking",
     "Phone vibrating",
-    "Microwave button press",
-    "Microwave door opened",
-    "Microwave door closed"
+    "Vacuum cleaning",
+    "Blender running",
+    "Alarm",
+    "Soap dispensed",
+    "Microwave done chime"
 ]
 
 configuration = tflscripts.read_configuration()
@@ -30,30 +42,18 @@ activities_i = [configuration['activities'].index(a) for a in activities]
 tflscripts.set_dataset_folder('/home/giotto/transfer-learning-playground/datasets/')
 
 
-devices = [
-    ['synergy-final-iter1', '128.237.254.195'],  # sink
-    ['synergy-final-iter1', '128.237.246.127'],  # coffee
-    ['synergy-final-iter1', '128.237.248.186'],  # table
-    ['synergy-final-iter2', '128.237.248.186'],  # sink
-    ['synergy-final-iter2', '128.237.254.195'],  # coffee
-    ['synergy-final-iter2', '128.237.246.127'],  # table
-#     ['synergy-final-iter3', '128.237.237.122', 'Synergy 3 sink'], # sink
-#     ['synergy-final-iter3', '128.237.239.234', 'Synergy 3 coffee'], # coffee
-#     ['synergy-final-iter3', '128.237.234.0', 'Synergy 3 table'], # table
-    ['scott-final-iter1', '128.237.248.186'],  # left
-    ['scott-final-iter1', '128.237.247.134'],  # right
-    ['robotics-final', '128.237.246.127'],  # coffee
-    ['robotics-final', '128.237.247.134'],  # sink
-    ['robotics-final', '128.237.248.186'],  # entrance
-]
 pipelines = []
 
 features_to_use = [
     '.*',
-    'MICROPHONE',
-    'ACCEL',
+    'MICROPHONE_fft',
+    'microphone',
+    'ACCEL_fft',
+    'accel_|ACCEL_sst',
+    'temperature|pressure|humidity',
     'EMI',
-    'MICROPHONE|ACCEL_'
+    'IRMOTION',
+    'MICROPHONE|microphone|ACCEL_|accel_'
 ]
 
 classifiers = [
@@ -62,15 +62,28 @@ classifiers = [
     'LogisticRegression'
 ]
 
+datasets = [
+    "synergy-final-iter1",
+    "synergy-final-iter2",
+    "scott-final-iter1",
+    "robotics-final",
+    "synergy-final-iter4",
+    "synergy-final-iter5"
+]
 
-test_set = tflscripts.TestSet(name='single_activity_models')
+device_types = [
+    'Mite'
+]
 
 
-for source in devices:
-    source_dataset = source[0]
-    source_device = source[1]
+def devices_in_dataset(dataset):
+    devices = configuration['device_roles'][dataset]
+    devices = [d for d in devices if devices[d].split(' ')[0] in device_types]
+    return devices
 
-    df_source, df_source_labels = tflscripts.read_and_filter_dataset(
+
+def read_dataset(device, dataset):
+    df, df_labels = tflscripts.read_and_filter_dataset(
             source_dataset + '-1s',
             source_device,
             use_features='.*',
@@ -78,8 +91,40 @@ for source in devices:
             scale=True,
             with_feature_selection=False)
 
-    df_source = df_source.loc[df_source.index.isin(df_source_labels.index)]
-    df_source_labels = df_source_labels.loc[df_source_labels.index.isin(df_source.index)]
+    df = df.loc[df.index.isin(df_labels.index)]
+    df_labels = df_labels.loc[df_labels.index.isin(df.index)]
+
+    return df, df_labels
+
+
+def classifier_with_label(classifier):
+    if classifier == 'SVM':
+        return svm.SVC(kernel='linear', decision_function_shape='ovr')
+    elif classifier == 'RandomForestClassifier':
+        return RandomForestClassifier()
+    elif classifier == 'LogisticRegression':
+        return LogisticRegression()
+
+
+def fit_pipeline(classifier, x_train, y_train):
+    clf = classifier_with_label(classifier)
+
+    ppl = Pipeline([
+        ('impute', Imputer()),
+        ('clf', clf)
+    ])
+
+    ppl.fit(x_train, y_train)
+
+    return ppl
+
+
+def test_for_source(source_dataset, source_device):
+    test_set = tflscripts.TestSet(name='_'.join([source_dataset,
+                                                 source_device]))
+
+    df_source, df_source_labels = read_dataset(dataset=source_dataset,
+                                               device=source_device)
 
     for label in df_source_labels.label.unique():
         for features in features_to_use:
@@ -87,59 +132,90 @@ for source in devices:
             y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
             for classifier in classifiers:
-                if classifier == 'SVM':
-                    clf = svm.SVC(kernel='linear', decision_function_shape='ovr')
-                elif classifier == 'RandomForestClassifier':
-                    clf = RandomForestClassifier()
-                elif classifier == 'LogisticRegression':
-                    clf = LogisticRegression()
+                print(source_dataset, source_device, classifiers, features)
 
-                ppl = Pipeline([
-                    ('impute', Imputer()),
-                    ('clf', clf)
-                ])
+                # test on the same domain
+                x_train_s, x_test_s, y_train_sl, y_test_sl = train_test_split(
+                        x_train, df_source_labels['label'], test_size=0.33)
+                y_train_s = tflscripts.get_y_for_label_series(y_train_sl,
+                                                              label)
 
-                ppl.fit(x_train, y_train)
+                if label in y_test_sl and label in y_train_sl:
+                    ppl = fit_pipeline(classifier, x_train_s, y_train_s)
+                    predicted = ppl.predict(x_test_s)
 
-                for target in devices:
-                    target_dataset = target[0]
-                    target_device = target[1]
-
-                    if source_dataset == target_dataset and source_device == target_device:
-                        continue
-
-                    label_pipelines = {}
-
-                    df_target, df_target_labels = tflscripts.read_and_filter_dataset(
-                        target_dataset + '-1s',
-                        target_device,
-                        use_features='.*',
-                        use_activities=activities_i,
-                        scale=True,
-                        with_feature_selection=False)
-
-                    df_target = df_target.loc[df_target.index.isin(df_target_labels.index)]
-
-                    y_test = tflscripts.get_y_for_label(df_target_labels, label)
-                    x_test = df_target[x_train.columns]
-
-                    predicted = ppl.predict(x_test)
                     result = tflscripts.TestResult(
                         source_dataset=source_dataset,
                         source_device=source_device,
 
-                        target_dataset=target_dataset,
-                        target_device=target_device,
+                        target_dataset=source_dataset,
+                        target_device=source_device,
 
                         predicted=predicted,
-                        actual=y_test.values,
-                        actual_with_all_labels=df_target_labels.label.values,
+                        actual_with_all_labels=y_test_sl.values,
 
                         classifier=classifier,
                         window_size='1s',
                         label=label,
-                        columns=x_train.columns,
+                        columns=x_train_s.columns,
                         features=features
                     )
-
                     test_set.add_result(result)
+
+                    ppl = fit_pipeline(classifier, x_train, y_train)
+                else:
+                    print('Couldnt split so that label is both in train and test set')
+
+                # test with transfer
+                for target_dataset in datasets:
+                    for target_device in devices_in_dataset(target_dataset):
+                        if source_dataset == target_dataset and source_device == target_device:
+                            continue
+
+                        print('   ', target_dataset, target_device)
+
+                        df_target, df_target_labels = read_dataset(dataset=target_dataset,
+                                                                   device=target_device)
+
+                        if label not in df_target_labels['label'].values:
+                            print('Label not in target')
+                            continue
+
+                        x_test = df_target[x_train.columns]
+
+                        predicted = ppl.predict(x_test)
+                        result = tflscripts.TestResult(
+                            source_dataset=source_dataset,
+                            source_device=source_device,
+
+                            target_dataset=target_dataset,
+                            target_device=target_device,
+
+                            predicted=predicted,
+                            actual_with_all_labels=df_target_labels.label.values,
+
+                            classifier=classifier,
+                            window_size='1s',
+                            label=label,
+                            columns=x_train.columns,
+                            features=features
+                        )
+
+                        test_set.add_result(result)
+
+
+is_worker = 'worker' in sys.argv
+if is_worker:
+    print('Running as worker')
+    from rq import Worker
+    worker = Worker('default', connection=Redis())
+    worker.work(logging_level='WARNING')
+
+else:
+    print('Running as scheduler')
+    q = Queue(connection=Redis())
+    for source_dataset in datasets:
+        devices = devices_in_dataset(source_dataset)
+
+        for source_device in devices:
+            q.enqueue(test_for_source, source_dataset, source_device)
