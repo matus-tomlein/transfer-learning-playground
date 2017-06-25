@@ -6,6 +6,7 @@ from .data_split import take_percentage_of_data, \
 from .domain_adaptation import easy_domain_adaptation_update_dataframes
 from .configuration import read_configuration
 from .datasets import read_and_filter_dataset, concat_and_reindex
+import os.path
 
 
 configuration = read_configuration()
@@ -280,6 +281,9 @@ class TestSet:
               result.source_dataset,
               'to', result.target_device,
               result.target_dataset)
+
+    def exists(self):
+        return os.path.isfile(self.file_name)
 
     def get_results(self):
         input = open(self.file_name, 'rb')
