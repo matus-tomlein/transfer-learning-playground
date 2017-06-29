@@ -8,24 +8,26 @@ from sklearn.model_selection import train_test_split
 
 tested_devices = [
     ['synergy-final-iter1', '128.237.254.195'],  # sink
-    # ['synergy-final-iter1', '128.237.246.127'],  # coffee
+    ['synergy-final-iter1', '128.237.246.127'],  # coffee
     ['synergy-final-iter1', '128.237.248.186'],  # table
 
     ['synergy-final-iter2', '128.237.248.186'],  # sink
     ['synergy-final-iter2', '128.237.254.195'],  # coffee
-    # ['synergy-final-iter2', '128.237.246.127'],  # table
+    ['synergy-final-iter2', '128.237.246.127'],  # table
 
     ['synergy-final-iter4', '128.237.247.190'],  # table
-    # ['synergy-final-iter4', '128.237.227.76'],  # sink
+    ['synergy-final-iter4', '128.237.227.76'],  # sink
     ['synergy-final-iter4', '128.237.250.218'],  # coffee
 
-    # ['synergy-final-iter5', '128.237.247.190'],  # table
+    ['synergy-final-iter5', '128.237.247.190'],  # table
     ['synergy-final-iter5', '128.237.227.76'],  # coffee
     ['synergy-final-iter5', '128.237.250.218'],  # sink
 
     ['scott-final-iter1', '128.237.248.186'],  # left
     ['scott-final-iter1', '128.237.247.134'],  # right
+    ['scott-final-iter1', '128.237.246.127'],  # pantry
 
+    ['robotics-final', '128.237.248.186'],  # entrance
     ['robotics-final', '128.237.246.127'],  # coffee
     ['robotics-final', '128.237.247.134'],  # sink
 ]
@@ -63,7 +65,7 @@ pipelines = []
 features_to_use = [
     '.*',
     'MICROPHONE_|microphone',
-    # 'ACCEL_|accel_',
+    'ACCEL_|accel_|mag_',
     'temperature|pressure|humidity',
     'EMI|IRMOTION',
     'MICROPHONE|microphone|ACCEL_|accel_'
