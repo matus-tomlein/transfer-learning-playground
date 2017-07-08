@@ -267,6 +267,35 @@ class TestResult:
         return configuration['activities'][self.label]
 
 
+class RecalibratedTestResult:
+    def __init__(self,
+            test_result,
+            features,
+            classifier,
+            predicted):
+
+        self.test_result = test_result
+        self.features = features
+        self.predicted = predicted
+        self.classifier = classifier
+
+    @property
+    def source_dataset(self):
+        return self.test_result.source_dataset
+
+    @property
+    def source_device(self):
+        return self.test_result.source_device
+
+    @property
+    def target_dataset(self):
+        return self.test_result.target_dataset
+
+    @property
+    def target_device(self):
+        return self.test_result.target_device
+
+
 class TestSet:
     def __init__(self, name,
                  path='/home/giotto/transfer-learning-playground/results/'):

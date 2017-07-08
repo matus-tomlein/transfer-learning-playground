@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf8 -*-
+
 import tflscripts
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import Imputer
@@ -5,6 +8,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+import sys
+import os
+import pickle
 
 tested_devices = [
     ['synergy-final-iter1', '128.237.254.195'],  # sink
@@ -130,7 +136,9 @@ def fit_pipeline(classifier, x_train, y_train):
 
 def test_with_transfer(target_dataset, target_device,
         source_device, source_dataset,
-        x_train, label, features, ppl,
+        df_source, df_source_labels,
+        df_target, df_target_labels,
+        label, features,
         classifier, done_tests):
 
     key = get_test_key(source_dataset=source_dataset,
@@ -140,16 +148,19 @@ def test_with_transfer(target_dataset, target_device,
             label=label,
             features=features,
             classifier=classifier)
+
     if key in done_tests:
         print('Skipping test')
         return
 
-    df_target, df_target_labels = read_dataset(dataset=target_dataset,
-                                                device=target_device)
-
     if label not in df_target_labels['label'].values:
         print('Label not in target')
         return
+
+    x_train = df_source.filter(regex=features)
+    y_train = tflscripts.get_y_for_label(df_source_labels, label)
+
+    ppl = fit_pipeline(classifier, x_train, y_train)
 
     x_test = df_target[x_train.columns]
 
@@ -176,7 +187,7 @@ def test_with_transfer(target_dataset, target_device,
     test_set.add_result(result)
 
 
-def test_without_transfer(x_train, df_source_labels, classifier, label,
+def test_without_transfer(df_source, df_source_labels, classifier, label,
         source_device, source_dataset, features, done_tests):
 
     key = get_test_key(source_dataset=source_dataset,
@@ -189,6 +200,9 @@ def test_without_transfer(x_train, df_source_labels, classifier, label,
     if key in done_tests:
         print('Skipping test')
         return
+
+    x_train = df_source.filter(regex=features)
+    y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
     x_train_s, x_test_s, y_train_sl, y_test_sl = train_test_split(
             x_train, df_source_labels['label'], test_size=0.33)
@@ -222,51 +236,6 @@ def test_without_transfer(x_train, df_source_labels, classifier, label,
         print('Couldnt split so that label is both in train and test set')
 
 
-def test_for_source_model(source_dataset, source_device,
-        df_source, df_source_labels,
-        label, features, classifier, done_tests):
-
-    x_train = df_source.filter(regex=features)
-    y_train = tflscripts.get_y_for_label(df_source_labels, label)
-
-    print(source_dataset, source_device, classifier, features, label)
-
-    # test on the same domain
-
-    test_without_transfer(
-            x_train=x_train,
-            df_source_labels=df_source_labels,
-            classifier=classifier,
-            source_device=source_device,
-            source_dataset=source_dataset,
-            label=label,
-            features=features,
-            done_tests=done_tests)
-
-    ppl = fit_pipeline(classifier, x_train, y_train)
-
-    # test with transfer
-    for target_dataset_device in tested_devices:
-        target_dataset = target_dataset_device[0]
-        target_device = target_dataset_device[1]
-
-        if source_dataset == target_dataset and source_device == target_device:
-            continue
-
-        print('   ', target_dataset, target_device)
-
-        test_with_transfer(target_dataset=target_dataset,
-                target_device=target_device,
-                source_device=source_device,
-                source_dataset=source_dataset,
-                x_train=x_train,
-                label=label,
-                features=features,
-                ppl=ppl,
-                classifier=classifier,
-                done_tests=done_tests)
-
-
 def get_test_key(source_dataset, source_device, target_dataset, target_device,
         label, features, classifier):
     return '-'.join([source_device, source_dataset, target_device,
@@ -278,34 +247,116 @@ def previously_done_tests(source_dataset, source_device):
                                                  source_device]))
 
     tests = {}
-    for r in test_set.get_results():
-        key = get_test_key(source_device=r.source_device,
-                source_dataset=r.source_dataset,
-                target_dataset=r.target_dataset,
-                target_device=r.target_device,
-                label=r.label,
-                features=r.features,
-                classifier=r.classifier)
-        tests[key] = True
+    if test_set.exists():
+        for r in test_set.get_results():
+            key = get_test_key(source_device=r.source_device,
+                    source_dataset=r.source_dataset,
+                    target_dataset=r.target_dataset,
+                    target_device=r.target_device,
+                    label=r.label,
+                    features=r.features,
+                    classifier=r.classifier)
+            tests[key] = True
 
     return tests
 
 
-def test_for_source(source_dataset, source_device):
+def test_for_source_and_target(source_dataset, source_device,
+        target_dataset, target_device, done_tests):
     df_source, df_source_labels = read_dataset(dataset=source_dataset,
                                                device=source_device)
-
-    done_tests = previously_done_tests(source_device=source_device,
-            source_dataset=source_dataset)
+    df_target, df_target_labels = read_dataset(dataset=target_dataset,
+                                               device=target_device)
 
     for label in df_source_labels.label.unique():
         for features in features_to_use:
             for classifier in classifiers:
-                test_for_source_model(source_dataset=source_dataset,
-                        source_device=source_device,
+                test_without_transfer(
                         df_source=df_source,
                         df_source_labels=df_source_labels,
+                        source_device=source_device,
+                        source_dataset=source_dataset,
+                        classifier=classifier,
+                        label=label,
+                        features=features,
+                        done_tests=done_tests)
+
+                test_with_transfer(target_dataset=target_dataset,
+                        target_device=target_device,
+                        source_device=source_device,
+                        source_dataset=source_dataset,
+                        df_source=df_source,
+                        df_source_labels=df_source_labels,
+                        df_target=df_target,
+                        df_target_labels=df_target_labels,
                         label=label,
                         features=features,
                         classifier=classifier,
                         done_tests=done_tests)
+
+
+def test_for_source(source_dataset, source_device):
+    for target_dataset_device in tested_devices:
+        target_dataset = target_dataset_device[0]
+        target_device = target_dataset_device[1]
+
+        if source_dataset == target_dataset and source_device == target_device:
+            continue
+
+        os.system('./single_activity_models.py {} {} {} {}'.format(
+            source_dataset,
+            source_device,
+            target_dataset,
+            target_device
+        ))
+
+def save_done_tests(source_dataset, source_device):
+    done_tests = previously_done_tests(source_device=source_device,
+            source_dataset=source_dataset)
+    file_name = '_'.join([source_dataset, source_device]) + '-done_tests.p'
+    done_tests_file = open(file_name, 'wb')
+    pickle.dump(done_tests, done_tests_file)
+
+    return done_tests
+
+
+def load_done_tests(source_dataset, source_device):
+    file_name = '_'.join([source_dataset, source_device]) + '-done_tests.p'
+
+    done_tests_file = open(file_name, 'rb')
+    done_tests = pickle.load(done_tests_file)
+
+    return done_tests
+
+
+if __name__ == "__main__":
+    # started with source dataset and device
+    if len(sys.argv) == 3:
+        source_dataset = sys.argv[1]
+        source_device = sys.argv[2]
+
+        save_done_tests(source_device=source_device,
+                source_dataset=source_dataset)
+
+        print('source dataset', source_dataset)
+        print('source device', source_device)
+
+        test_for_source(source_dataset=source_dataset,
+                        source_device=source_device)
+
+    # started with source and target dataset and device
+    elif len(sys.argv) == 5:
+        source_dataset, source_device, target_dataset, \
+        target_device = sys.argv[1:5]
+
+        done_tests = load_done_tests(source_device=source_device,
+                source_dataset=source_dataset)
+
+        test_for_source_and_target(source_dataset=source_dataset,
+                source_device=source_device,
+                target_dataset=target_dataset,
+                target_device=target_device,
+                done_tests=done_tests)
+
+    else:
+        print('Wrong number of arguments')

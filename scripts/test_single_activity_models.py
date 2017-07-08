@@ -11,5 +11,8 @@ for source_dataset_device in tested_devices:
     source_dataset = source_dataset_device[0]
     source_device = source_dataset_device[1]
 
+    if source_dataset != 'robotics-final':
+        continue
+
     q.enqueue(test_for_source, source_dataset, source_device,
             timeout=5*(3600*24)) # 5 days
