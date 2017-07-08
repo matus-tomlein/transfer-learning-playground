@@ -1,0 +1,33 @@
+digraph {
+		RI -> SC [arrowhead=vee arrowtail=vee dir=both]
+		RI -> SS [arrowhead=vee style=dotted]
+		RO -> SS [arrowhead=vee style=dotted]
+		SC -> SS [arrowhead=vee arrowtail=vee dir=both]
+		ST -> SC [arrowhead=vee style=dotted]
+		TR -> SC [arrowhead=vee style=dotted]
+		ST -> SS [arrowhead=vee style=dotted]
+		TL -> SS [arrowhead=vee style=dotted]
+		TR -> SS [arrowhead=vee style=dotted]
+	subgraph cluster_T {
+		node [color=white style=filled]
+		style=filled
+		color=lightgrey
+			TL [label="" fillcolor=turquoise shape=diamond style=filled]
+			TR [label="" fillcolor=powderblue shape=diamond style=filled]
+	}
+	subgraph cluster_S {
+		node [color=white style=filled]
+		style=filled
+		color=lightgrey
+			SC [label="" fillcolor=rosybrown1 shape=ellipse style=filled]
+			SS [label="" fillcolor=moccasin shape=ellipse style=filled]
+			ST [label="" fillcolor=grey80 shape=ellipse style=filled]
+	}
+	subgraph cluster_R {
+		node [color=white style=filled]
+		style=filled
+		color=lightgrey
+			RI [label="" fillcolor=tan shape=box style=filled]
+			RO [label="" fillcolor=lightsalmon2 shape=box style=filled]
+	}
+}
