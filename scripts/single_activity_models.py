@@ -13,58 +13,95 @@ import os
 import pickle
 
 tested_devices = [
+
     ['synergy-final-iter1', '128.237.254.195'],  # sink
     ['synergy-final-iter1', '128.237.246.127'],  # coffee
     ['synergy-final-iter1', '128.237.248.186'],  # table
+
+    ['synergy-final-iter1', 'Matrix b827eb96f31a'],
+    ['synergy-final-iter1', 'Matrix b827ebe6e0f8'],
+    ['synergy-final-iter1', 'Matrix b827eb41f96f'],
+
+    ['synergy-final-iter1', 'xdk_1'],
+    ['synergy-final-iter1', 'xdk_2'],
+    ['synergy-final-iter1', 'xdk_3'],
 
     ['synergy-final-iter2', '128.237.248.186'],  # sink
     ['synergy-final-iter2', '128.237.254.195'],  # coffee
     ['synergy-final-iter2', '128.237.246.127'],  # table
 
+    ['synergy-final-iter2', 'Matrix b827eb96f31a'],
+    ['synergy-final-iter2', 'Matrix b827ebe6e0f8'],
+    ['synergy-final-iter2', 'Matrix b827eb41f96f'],
+
+    ['synergy-final-iter2', 'xdk_1'],
+    ['synergy-final-iter2', 'xdk_2'],
+    ['synergy-final-iter2', 'xdk_3'],
+
     ['synergy-final-iter4', '128.237.247.190'],  # table
     ['synergy-final-iter4', '128.237.227.76'],  # sink
     ['synergy-final-iter4', '128.237.250.218'],  # coffee
+
+    ['synergy-final-iter4', 'Matrix b827eb96f31a'],
+    ['synergy-final-iter4', 'Matrix b827ebe6e0f8'],
+    ['synergy-final-iter4', 'Matrix b827eb41f96f'],
+
+    ['synergy-final-iter4', 'xdk_1'],
+    ['synergy-final-iter4', 'xdk_2'],
+    ['synergy-final-iter4', 'xdk_3'],
 
     ['synergy-final-iter5', '128.237.247.190'],  # table
     ['synergy-final-iter5', '128.237.227.76'],  # coffee
     ['synergy-final-iter5', '128.237.250.218'],  # sink
 
+    ['synergy-final-iter5', 'Matrix b827eb96f31a'],
+    ['synergy-final-iter5', 'Matrix b827ebe6e0f8'],
+    ['synergy-final-iter5', 'Matrix b827eb41f96f'],
+
+    ['synergy-final-iter5', 'xdk_1'],
+    ['synergy-final-iter5', 'xdk_2'],
+    ['synergy-final-iter5', 'xdk_3'],
+
     ['scott-final-iter1', '128.237.248.186'],  # left
     ['scott-final-iter1', '128.237.247.134'],  # right
     ['scott-final-iter1', '128.237.246.127'],  # pantry
+
+    ['scott-final-iter1', 'Matrix b827eb96f31a'],
+    ['scott-final-iter1', 'Matrix b827ebe6e0f8'],
+    ['scott-final-iter1', 'Matrix b827eb41f96f'],
+
+    ['scott-final-iter1', 'xdk_1'],
+    ['scott-final-iter1', 'xdk_2'],
+    ['scott-final-iter1', 'xdk_3'],
 
     ['scott-final-iter3', '128.237.227.76'],  # left
     ['scott-final-iter3', '128.237.250.218'],  # right
     ['scott-final-iter3', '128.237.247.190'],  # pantry
 
+    ['scott-final-iter3', 'Matrix b827eb96f31a'],
+    ['scott-final-iter3', 'Matrix b827ebe6e0f8'],
+    ['scott-final-iter3', 'Matrix b827eb41f96f'],
+
+    ['scott-final-iter3', 'xdk_1'],
+    ['scott-final-iter3', 'xdk_2'],
+    ['scott-final-iter3', 'xdk_3'],
+
     ['robotics-final', '128.237.248.186'],  # entrance
     ['robotics-final', '128.237.246.127'],  # coffee
     ['robotics-final', '128.237.247.134'],  # sink
-]
 
-activities = [
-    "Dishes",
-    "Null",
-    "Microwave",
-    "Coffee",
-    "Kettle",
-    "Chopping food",
-    "Conversation",
-    # "Microwave door opened",
-    "Microwave door closed",
-    "Cupboard door opened",
-    "Cupboard door closed",
-    "Microwave button press",
-    "Knocking",
-    # "Phone vibrating",
-    "Vacuum cleaning",
-    "Blender running",
-    "Alarm",
-    "Soap dispensed",
-    "Microwave done chime"
+    ['robotics-final', 'Matrix b827eb96f31a'],
+    ['robotics-final', 'Matrix b827ebe6e0f8'],
+    ['robotics-final', 'Matrix b827eb41f96f'],
+
+    ['robotics-final', 'xdk_1'],
+    ['robotics-final', 'xdk_2'],
+    ['robotics-final', 'xdk_3'],
 ]
 
 configuration = tflscripts.read_configuration()
+
+activities = configuration['analysed_activities']
 activities_i = [configuration['activities'].index(a) for a in activities]
 
 tflscripts.set_dataset_folder('/home/giotto/transfer-learning-playground/datasets/')
@@ -161,7 +198,14 @@ def test_with_transfer(target_dataset, target_device,
         print('Label not in target')
         return
 
-    x_train = df_source.filter(regex=features)
+    c1 = df_source.filter(regex=features).columns.tolist()
+    c2 = df_target.filter(regex=features).columns.tolist()
+    columns = [i for i in c1 if i in c2]
+    if len(columns) == 0:
+        print('No common columns for the features found')
+        return
+
+    x_train = df_source[columns]
     y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
     ppl = fit_pipeline(classifier, x_train, y_train)
@@ -206,6 +250,9 @@ def test_without_transfer(df_source, df_source_labels, classifier, label,
         return
 
     x_train = df_source.filter(regex=features)
+    if len(x_train.columns) == 0:
+        print('No columns found')
+        return
     y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
     x_train_s, x_test_s, y_train_sl, y_test_sl = train_test_split(
@@ -275,7 +322,12 @@ def test_for_source_and_target(source_dataset, source_device,
     done_tests = previously_done_tests(source_device=source_device,
             source_dataset=source_dataset)
 
-    for label in df_source_labels.label.unique():
+    l1 = configuration['compared_activities'][source_dataset]
+    l2 = configuration['compared_activities'][target_dataset]
+    labels = [l for l in l1 if l in l2]
+    labels = [configuration['activities'].index(a) for a in labels]
+
+    for label in labels:
         for features in features_to_use:
             for classifier in classifiers:
                 test_without_transfer(
@@ -318,6 +370,18 @@ def test_for_source(source_dataset, source_device):
         ))
 
 
+def test_for_source_dataset(source_dataset):
+    for dataset_device in tested_devices:
+        dataset = dataset_device[0]
+        device = dataset_device[1]
+
+        if dataset == source_dataset:
+            os.system('./single_activity_models.py {} {}'.format(
+                source_dataset,
+                device
+            ))
+
+
 if __name__ == "__main__":
     # start all analysis
     if len(sys.argv) == 1:
@@ -330,6 +394,13 @@ if __name__ == "__main__":
                 source_dataset,
                 source_device
             ))
+
+    # started with source dataset
+    elif len(sys.argv) == 2:
+        source_dataset = sys.argv[1]
+        print('source dataset', source_dataset)
+
+        test_for_source_dataset(source_dataset=source_dataset)
 
 
     # started with source dataset and device

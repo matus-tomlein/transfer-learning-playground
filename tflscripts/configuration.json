@@ -48,6 +48,86 @@
     "Microwave done chime"
   ],
 
+  "compared_activities": {
+    "robotics-final": [
+      "Chopping food",
+      "Coffee",
+      "Conversation",
+      "Dishes",
+      "Kettle",
+      "Knocking",
+      "Microwave",
+      "Microwave button press",
+      "Microwave door closed"
+    ],
+
+    "scott-final-iter1": [
+      "Chopping food",
+      "Coffee",
+      "Conversation",
+      "Dishes",
+      "Kettle",
+      "Knocking",
+      "Microwave",
+      "Microwave button press",
+      "Microwave door closed"
+    ],
+
+    "scott-final-iter3": [
+      "Alarm",
+      "Blender running",
+      "Cupboard door opened",
+      "Cupboard door closed",
+      "Microwave done chime",
+      "Soap dispensed",
+      "Vacuum cleaning"
+    ],
+
+    "synergy-final-iter1": [
+      "Chopping food",
+      "Conversation",
+      "Dishes",
+      "Kettle",
+      "Microwave",
+      "Microwave button press"
+    ],
+
+    "synergy-final-iter2": [
+      "Chopping food",
+      "Conversation",
+      "Dishes",
+      "Kettle",
+      "Microwave",
+      "Microwave button press"
+    ],
+
+    "synergy-final-iter4": [
+      "Alarm",
+      "Blender running",
+      "Coffee",
+      "Cupboard door opened",
+      "Cupboard door closed",
+      "Knocking",
+      "Microwave done chime",
+      "Microwave door closed",
+      "Soap dispensed",
+      "Vacuum cleaning"
+    ],
+
+    "synergy-final-iter5": [
+      "Alarm",
+      "Blender running",
+      "Coffee",
+      "Cupboard door opened",
+      "Cupboard door closed",
+      "Knocking",
+      "Microwave done chime",
+      "Microwave door closed",
+      "Soap dispensed",
+      "Vacuum cleaning"
+    ]
+  },
+
   "activity_sets": [
     [
       "Dishes",
