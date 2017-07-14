@@ -33,6 +33,10 @@ tested_devices = [
     ['scott-final-iter1', '128.237.247.134'],  # right
     ['scott-final-iter1', '128.237.246.127'],  # pantry
 
+    ['scott-final-iter3', '128.237.227.76'],  # left
+    ['scott-final-iter3', '128.237.250.218'],  # right
+    ['scott-final-iter3', '128.237.247.190'],  # pantry
+
     ['robotics-final', '128.237.248.186'],  # entrance
     ['robotics-final', '128.237.246.127'],  # coffee
     ['robotics-final', '128.237.247.134'],  # sink
@@ -262,11 +266,14 @@ def previously_done_tests(source_dataset, source_device):
 
 
 def test_for_source_and_target(source_dataset, source_device,
-        target_dataset, target_device, done_tests):
+        target_dataset, target_device):
     df_source, df_source_labels = read_dataset(dataset=source_dataset,
                                                device=source_device)
     df_target, df_target_labels = read_dataset(dataset=target_dataset,
                                                device=target_device)
+
+    done_tests = previously_done_tests(source_device=source_device,
+            source_dataset=source_dataset)
 
     for label in df_source_labels.label.unique():
         for features in features_to_use:
@@ -310,33 +317,25 @@ def test_for_source(source_dataset, source_device):
             target_device
         ))
 
-def save_done_tests(source_dataset, source_device):
-    done_tests = previously_done_tests(source_device=source_device,
-            source_dataset=source_dataset)
-    file_name = '_'.join([source_dataset, source_device]) + '-done_tests.p'
-    done_tests_file = open(file_name, 'wb')
-    pickle.dump(done_tests, done_tests_file)
-
-    return done_tests
-
-
-def load_done_tests(source_dataset, source_device):
-    file_name = '_'.join([source_dataset, source_device]) + '-done_tests.p'
-
-    done_tests_file = open(file_name, 'rb')
-    done_tests = pickle.load(done_tests_file)
-
-    return done_tests
-
 
 if __name__ == "__main__":
+    # start all analysis
+    if len(sys.argv) == 1:
+
+        for source_dataset_device in tested_devices:
+            source_dataset = source_dataset_device[0]
+            source_device = source_dataset_device[1]
+
+            os.system('./single_activity_models.py {} {}'.format(
+                source_dataset,
+                source_device
+            ))
+
+
     # started with source dataset and device
-    if len(sys.argv) == 3:
+    elif len(sys.argv) == 3:
         source_dataset = sys.argv[1]
         source_device = sys.argv[2]
-
-        save_done_tests(source_device=source_device,
-                source_dataset=source_dataset)
 
         print('source dataset', source_dataset)
         print('source device', source_device)
@@ -344,19 +343,16 @@ if __name__ == "__main__":
         test_for_source(source_dataset=source_dataset,
                         source_device=source_device)
 
+
     # started with source and target dataset and device
     elif len(sys.argv) == 5:
         source_dataset, source_device, target_dataset, \
         target_device = sys.argv[1:5]
 
-        done_tests = load_done_tests(source_device=source_device,
-                source_dataset=source_dataset)
-
         test_for_source_and_target(source_dataset=source_dataset,
                 source_device=source_device,
                 target_dataset=target_dataset,
-                target_device=target_device,
-                done_tests=done_tests)
+                target_device=target_device)
 
     else:
         print('Wrong number of arguments')

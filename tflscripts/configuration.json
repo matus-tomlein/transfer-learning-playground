@@ -28,6 +28,26 @@
     "Microwave done chime"
   ],
 
+  "analysed_activities": [
+    "Dishes",
+    "Null",
+    "Microwave",
+    "Coffee",
+    "Kettle",
+    "Chopping food",
+    "Conversation",
+    "Microwave door closed",
+    "Cupboard door opened",
+    "Cupboard door closed",
+    "Microwave button press",
+    "Knocking",
+    "Vacuum cleaning",
+    "Blender running",
+    "Alarm",
+    "Soap dispensed",
+    "Microwave done chime"
+  ],
+
   "activity_sets": [
     [
       "Dishes",
@@ -352,6 +372,18 @@
       "xdk_1": "XDK 1 Right",
       "xdk_2": "XDK 2 Pantry",
       "xdk_3": "XDK 3 Left"
+    },
+
+    "scott-final-iter3": {
+      "128.237.247.190": "Mite 1 Pantry",
+      "128.237.227.76": "Mite 2 Left",
+      "128.237.250.218": "Mite 4 Right",
+      "Matrix b827eb96f31a": "Matrix 1 Pantry",
+      "Matrix b827ebe6e0f8": "Matrix 2 Right",
+      "Matrix b827eb41f96f": "Matrix 3 Left",
+      "xdk_1": "XDK 1 Pantry",
+      "xdk_2": "XDK 2 Left",
+      "xdk_3": "XDK 3 Right"
     },
 
     "robotics-final": {
