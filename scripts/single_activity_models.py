@@ -362,7 +362,7 @@ def test_for_source(source_dataset, source_device):
         if source_dataset == target_dataset and source_device == target_device:
             continue
 
-        os.system('./single_activity_models.py {} {} {} {}'.format(
+        os.system('./single_activity_models.py "{}" "{}" "{}" "{}"'.format(
             source_dataset,
             source_device,
             target_dataset,
@@ -376,7 +376,7 @@ def test_for_source_dataset(source_dataset):
         device = dataset_device[1]
 
         if dataset == source_dataset:
-            os.system('./single_activity_models.py {} {}'.format(
+            os.system('./single_activity_models.py "{}" "{}"'.format(
                 source_dataset,
                 device
             ))
@@ -390,7 +390,7 @@ if __name__ == "__main__":
             source_dataset = source_dataset_device[0]
             source_device = source_dataset_device[1]
 
-            os.system('./single_activity_models.py {} {}'.format(
+            os.system('./single_activity_models.py "{}" "{}"'.format(
                 source_dataset,
                 source_device
             ))

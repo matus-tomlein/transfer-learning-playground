@@ -1,32 +1,57 @@
 digraph {
-		RE -> RI [arrowhead=vee style=dotted]
-		RE -> SC [arrowhead=vee style=dotted]
-		RE -> SS [arrowhead=vee style=dotted]
-		RI -> SC [arrowhead=vee style=dotted]
-		RI -> SS [arrowhead=vee style=dotted]
-		SC -> SS [arrowhead=vee arrowtail=vee dir=both]
-		ST -> SC [arrowhead=vee style=dotted]
-		ST -> SS [arrowhead=vee style=dotted]
-		TR -> SS [arrowhead=vee style=dotted]
-	subgraph cluster_S {
+		syS -> syS [label=0.96 arrowhead=vee constraint=True style=dotted]
+		syC -> syS [label=0.96 arrowhead=vee constraint=True style=dotted]
+		syS -> syC [label=0.95 arrowhead=vee constraint=True style=dotted]
+		syT -> syC [label=0.95 arrowhead=vee constraint=True style=dotted]
+		syS -> syC [label=0.93 arrowhead=vee constraint=True style=dotted]
+		syC -> syS [label=0.93 arrowhead=vee constraint=True style=dotted]
+		syT -> syS [label=0.93 arrowhead=vee constraint=True style=dotted]
+		syC -> syC [label=0.93 arrowhead=vee constraint=True style=dotted]
+		syT -> syS [label=0.92 arrowhead=vee constraint=True style=dotted]
+		syS -> syT [label=0.92 arrowhead=vee constraint=True style=dotted]
+		scP -> syS [label=0.91 arrowhead=vee constraint=False style=dotted]
+		syT -> syC [label=0.9 arrowhead=vee constraint=True style=dotted]
+		scL -> syC [label=0.9 arrowhead=vee constraint=False style=dotted]
+		syT -> syT [label=0.9 arrowhead=vee constraint=True style=dotted]
+		syC -> syT [label=0.88 arrowhead=vee constraint=True style=dotted]
+		syC -> syT [label=0.88 arrowhead=vee constraint=True style=dotted]
+		syS -> syT [label=0.88 arrowhead=vee constraint=True style=dotted]
+		syC -> scP [label=0.88 arrowhead=vee constraint=False style=dotted]
+		syS -> scP [label=0.87 arrowhead=vee constraint=False style=dotted]
+		scP -> scR [label=0.86 arrowhead=vee constraint=True style=dotted]
+		scL -> syS [label=0.84 arrowhead=vee constraint=False style=dotted]
+		syC -> scR [label=0.84 arrowhead=vee constraint=False style=dotted]
+		syT -> scP [label=0.84 arrowhead=vee constraint=False style=dotted]
+		syS -> scR [label=0.84 arrowhead=vee constraint=False style=dotted]
+		scP -> syT [label=0.82 arrowhead=vee constraint=False style=dotted]
+		syS -> scL [label=0.82 arrowhead=vee constraint=False style=dotted]
+		scR -> syT [label=0.82 arrowhead=vee constraint=False style=dotted]
+		scL -> scP [label=0.81 arrowhead=vee constraint=True style=dotted]
+		scL -> syT [label=0.8 arrowhead=vee constraint=False style=dotted]
+		syT -> scR [label=0.8 arrowhead=vee constraint=False style=dotted]
+		syC -> scL [label=0.79 arrowhead=vee constraint=False style=dotted]
+		scL -> scR [label=0.77 arrowhead=vee constraint=True style=dotted]
+		syT -> scL [label=0.77 arrowhead=vee constraint=False style=dotted]
+		scP -> syC [label=0.75 arrowhead=vee constraint=False style=dotted]
+		scR -> syC [label=0.75 arrowhead=vee constraint=False style=dotted]
+		scR -> scP [label=0.73 arrowhead=vee constraint=True style=dotted]
+		scR -> scL [label=0.72 arrowhead=vee constraint=True style=dotted]
+		scR -> syS [label=0.72 arrowhead=vee constraint=False style=dotted]
+		scP -> scL [label=0.7 arrowhead=vee constraint=True style=dotted]
+	subgraph cluster_scott {
 		node [color=white style=filled]
 		style=filled
 		color=lightgrey
-			SC [label="" fillcolor=rosybrown1 shape=ellipse style=filled]
-			SS [label="" fillcolor=moccasin shape=ellipse style=filled]
-			ST [label="" fillcolor=grey80 shape=ellipse style=filled]
+			scL [label=0.94 fillcolor=turquoise shape=diamond style=filled]
+			scP [label=0.93 fillcolor=palegreen3 shape=diamond style=filled]
+			scR [label=0.92 fillcolor=powderblue shape=diamond style=filled]
 	}
-	subgraph cluster_T {
+	subgraph cluster_synergy {
 		node [color=white style=filled]
 		style=filled
 		color=lightgrey
-			TR [label="" fillcolor=powderblue shape=diamond style=filled]
-	}
-	subgraph cluster_R {
-		node [color=white style=filled]
-		style=filled
-		color=lightgrey
-			RE [label="" fillcolor=grey40 shape=box style=filled]
-			RI [label="" fillcolor=tan shape=box style=filled]
+			syS [label=0.99 fillcolor=moccasin shape=ellipse style=filled]
+			syC [label=0.98 fillcolor=rosybrown1 shape=ellipse style=filled]
+			syT [label=0.97 fillcolor=grey80 shape=ellipse style=filled]
 	}
 }
