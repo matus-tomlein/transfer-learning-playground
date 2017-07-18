@@ -1,42 +1,96 @@
 import numpy as np
 import itertools
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
 
-def scatter_plot_by(column, df_plot, label='Microwave', features='Microphone', classifier='LogisticRegression',
-            x_value_column='accuracy_negative', y_value_column='accuracy_negative_wt',
-            common_limits=True):
+def scatter_plot_by(column, df_plot, other_column=None, label='Microwave', features='Microphone', classifier='LogisticRegression',
+                    use_markers={}, use_colors={},
+                    ax=None, show_legend=True, title=None,
+                    x_value_column='f1_change', y_value_column='f1_wt',
+                    xlabel=None, ylabel=None,
+                    min_val=None, max_val=None,
+                    size=200,
+                    common_limits=True):
 
     if label is not None:
         df_plot = df_plot.loc[df_plot.label == label]
-    df_plot = df_plot.loc[df_plot.features_name == features]
-    df_plot = df_plot.loc[df_plot.classifier == classifier]
+    if features is not None:
+        df_plot = df_plot.loc[df_plot.features_name == features]
+    if classifier is not None:
+        df_plot = df_plot.loc[df_plot.classifier == classifier]
 
-    fig, ax = plt.subplots()
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        ax = ax
+
+    colors = itertools.cycle(matplotlib.cm.rainbow(np.linspace(0, 1, len(df_plot[column].drop_duplicates()))))
 
     for value in df_plot[column].drop_duplicates():
-        subdf_plot = df_plot.loc[df_plot[column] == value]
-        if len(subdf_plot) > 0:
-            ax.scatter(subdf_plot[x_value_column], subdf_plot[y_value_column], label=value)
-    ax.legend()
+        if value in use_colors:
+            color = use_colors[value]
+        else:
+            color = next(colors)
+            use_colors[value] = color
 
-    min_val = min(df_plot[x_value_column].min(), df_plot[y_value_column].min()) - 0.02
-    max_val = max(df_plot[x_value_column].max(), df_plot[y_value_column].max()) + 0.02
+        subdf_plot = df_plot.loc[df_plot[column] == value]
+        if other_column is None:
+            if len(subdf_plot) > 0:
+                ax.scatter(subdf_plot[x_value_column],
+                        subdf_plot[y_value_column], s=size,
+                        edgecolor='black',
+                        label=value, color=color)
+
+        else:
+            markers = itertools.cycle(['o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd'])
+            for other_value in df_plot[other_column].drop_duplicates():
+                ssubdf_plot = subdf_plot.loc[df_plot[other_column] == other_value]
+                if other_value in use_markers:
+                    marker = use_markers[other_value]
+                else:
+                    marker = next(markers)
+                    use_markers[other_value] = marker
+
+                if len(ssubdf_plot) > 0:
+                    ax.scatter(ssubdf_plot[x_value_column],
+                            ssubdf_plot[y_value_column],
+                            label=value + ', ' + other_value,
+                            edgecolor='black',
+                            s=size,
+                            color=color, marker=marker)
+
+    if show_legend:
+        ax.legend()
+
+    if min_val is None:
+        min_val = min(df_plot[x_value_column].min(), df_plot[y_value_column].min()) - 0.02
+    if max_val is None:
+        max_val = max(df_plot[x_value_column].max(), df_plot[y_value_column].max()) + 0.02
+
+    matplotlib.pyplot.sca(ax)
 
     if common_limits:
         ax.set_ylim(min_val, max_val)
         ax.set_xlim(min_val, max_val)
+        plt.plot([min_val, max_val], [min_val, max_val], zorder=-10)
 
-    plt.title(column)
-    plt.xlabel(x_value_column)
-    plt.ylabel(y_value_column)
-    plt.show()
+    if title is None:
+        plt.title(column)
+    else:
+        plt.title(title)
+
+    plt.xlabel(x_value_column if xlabel is None else xlabel)
+    plt.ylabel(y_value_column if ylabel is None else ylabel)
+
+    return use_colors, use_markers, df_plot
 
 
-def boxplot_by(column, df_plot, label='Microwave', features='Microphone', classifier='LogisticRegression',
-            value_column='accuracy_positive_change'):
+def boxplot_by(column, df_plot, label='Microwave',
+               features='Microphone', classifier='LogisticRegression',
+               value_column='recall_change', ax=None, title=None):
     df_plot = df_plot.sort_values(by=column)
 
     if label is not None:
@@ -52,15 +106,24 @@ def boxplot_by(column, df_plot, label='Microwave', features='Microphone', classi
         newdf = pd.concat([pd.DataFrame({device: series}), newdf], axis=1)
 
     newdf = newdf.sort_index(axis=1)
-    newdf.plot.box()
-    plt.title(column)
+    newdf.plot.box(ax=ax)
+
+    if ax is not None:
+        matplotlib.pyplot.sca(ax)
+
+    if title is None:
+        plt.title(column)
+    else:
+        plt.title(title)
+
     plt.xticks(rotation='vertical')
-    plt.show()
 
 
 def heatmap_by(x_column, y_column, value_column, df_plot,
                label=None, features='Microphone', classifier='LogisticRegression',
-              cmap='gray'):
+               draw_cbar=True, cbar_ax=None,
+               vmin=None, vmax=None,
+               ax=None, title=None, cmap='gray'):
 
     title_parts = []
 
@@ -77,9 +140,22 @@ def heatmap_by(x_column, y_column, value_column, df_plot,
     df_plot = df_plot.groupby([x_column, y_column])[value_column].mean()
     df_plot = df_plot.reset_index()
     df_plot = df_plot.pivot(index=y_column, columns=x_column, values=value_column)
-    sns.heatmap(df_plot, annot=True, cmap=cmap)
-    plt.title(', '.join(title_parts))
-    plt.show()
+    sns.heatmap(df_plot,
+            cbar=draw_cbar,
+            cbar_ax=cbar_ax,
+            vmin=vmin,
+            vmax=vmax,
+            annot=True,
+            cmap=cmap,
+            ax=ax)
+
+    if ax is not None:
+        matplotlib.pyplot.sca(ax)
+
+    if title is None:
+        plt.title(', '.join(title_parts))
+    else:
+        plt.title(title)
 
 
 def confusion_matrices(df, dataset, configuration, graph_column, output_folder):
