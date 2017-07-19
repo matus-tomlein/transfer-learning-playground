@@ -10,7 +10,6 @@ from sklearn import svm
 from sklearn.model_selection import train_test_split
 import sys
 import os
-import pickle
 
 tested_devices = [
 
@@ -106,7 +105,6 @@ activities_i = [configuration['activities'].index(a) for a in activities]
 
 tflscripts.set_dataset_folder('/home/giotto/transfer-learning-playground/datasets/')
 
-
 pipelines = []
 
 features_to_use = [
@@ -136,6 +134,8 @@ datasets = [
 device_types = [
     'Mite'
 ]
+
+number_of_repetitions_per_test = 3
 
 
 def read_dataset(device, dataset):
@@ -175,22 +175,23 @@ def fit_pipeline(classifier, x_train, y_train):
 
     return ppl
 
+
 def test_with_transfer(target_dataset, target_device,
-        source_device, source_dataset,
-        df_source, df_source_labels,
-        df_target, df_target_labels,
-        label, features,
-        classifier, done_tests):
+                       source_device, source_dataset,
+                       df_source, df_source_labels,
+                       df_target, df_target_labels,
+                       label, features,
+                       classifier, done_tests):
 
     key = get_test_key(source_dataset=source_dataset,
-            source_device=source_device,
-            target_device=target_device,
-            target_dataset=target_dataset,
-            label=label,
-            features=features,
-            classifier=classifier)
+                       source_device=source_device,
+                       target_device=target_device,
+                       target_dataset=target_dataset,
+                       label=label,
+                       features=features,
+                       classifier=classifier)
 
-    if key in done_tests:
+    if key in done_tests and done_tests[key] >= number_of_repetitions_per_test:
         print('Skipping test')
         return
 
@@ -236,16 +237,17 @@ def test_with_transfer(target_dataset, target_device,
 
 
 def test_without_transfer(df_source, df_source_labels, classifier, label,
-        source_device, source_dataset, features, done_tests):
+                          source_device, source_dataset, features, done_tests):
 
     key = get_test_key(source_dataset=source_dataset,
-            source_device=source_device,
-            target_device=source_device,
-            target_dataset=source_dataset,
-            label=label,
-            features=features,
-            classifier=classifier)
-    if key in done_tests:
+                       source_device=source_device,
+                       target_device=source_device,
+                       target_dataset=source_dataset,
+                       label=label,
+                       features=features,
+                       classifier=classifier)
+
+    if key in done_tests and done_tests[key] >= number_of_repetitions_per_test:
         print('Skipping test')
         return
 
@@ -253,12 +255,10 @@ def test_without_transfer(df_source, df_source_labels, classifier, label,
     if len(x_train.columns) == 0:
         print('No columns found')
         return
-    y_train = tflscripts.get_y_for_label(df_source_labels, label)
 
     x_train_s, x_test_s, y_train_sl, y_test_sl = train_test_split(
             x_train, df_source_labels['label'], test_size=0.33)
-    y_train_s = tflscripts.get_y_for_label_series(y_train_sl,
-                                                    label)
+    y_train_s = tflscripts.get_y_for_label_series(y_train_sl, label)
 
     if label in y_test_sl.values and label in y_train_sl.values:
         ppl = fit_pipeline(classifier, x_train_s, y_train_s)
@@ -288,9 +288,9 @@ def test_without_transfer(df_source, df_source_labels, classifier, label,
 
 
 def get_test_key(source_dataset, source_device, target_dataset, target_device,
-        label, features, classifier):
+                 label, features, classifier):
     return '-'.join([source_device, source_dataset, target_device,
-        target_dataset, str(label), features, classifier])
+                     target_dataset, str(label), features, classifier])
 
 
 def previously_done_tests(source_dataset, source_device):
@@ -301,26 +301,29 @@ def previously_done_tests(source_dataset, source_device):
     if test_set.exists():
         for r in test_set.get_results():
             key = get_test_key(source_device=r.source_device,
-                    source_dataset=r.source_dataset,
-                    target_dataset=r.target_dataset,
-                    target_device=r.target_device,
-                    label=r.label,
-                    features=r.features,
-                    classifier=r.classifier)
-            tests[key] = True
+                               source_dataset=r.source_dataset,
+                               target_dataset=r.target_dataset,
+                               target_device=r.target_device,
+                               label=r.label,
+                               features=r.features,
+                               classifier=r.classifier)
+            if key in tests:
+                tests[key] += 1
+            else:
+                tests[key] = 1
 
     return tests
 
 
 def test_for_source_and_target(source_dataset, source_device,
-        target_dataset, target_device):
+                               target_dataset, target_device):
     df_source, df_source_labels = read_dataset(dataset=source_dataset,
                                                device=source_device)
     df_target, df_target_labels = read_dataset(dataset=target_dataset,
                                                device=target_device)
 
     done_tests = previously_done_tests(source_device=source_device,
-            source_dataset=source_dataset)
+                                       source_dataset=source_dataset)
 
     l1 = configuration['compared_activities'][source_dataset]
     l2 = configuration['compared_activities'][target_dataset]
@@ -341,17 +344,17 @@ def test_for_source_and_target(source_dataset, source_device,
                         done_tests=done_tests)
 
                 test_with_transfer(target_dataset=target_dataset,
-                        target_device=target_device,
-                        source_device=source_device,
-                        source_dataset=source_dataset,
-                        df_source=df_source,
-                        df_source_labels=df_source_labels,
-                        df_target=df_target,
-                        df_target_labels=df_target_labels,
-                        label=label,
-                        features=features,
-                        classifier=classifier,
-                        done_tests=done_tests)
+                                   target_device=target_device,
+                                   source_device=source_device,
+                                   source_dataset=source_dataset,
+                                   df_source=df_source,
+                                   df_source_labels=df_source_labels,
+                                   df_target=df_target,
+                                   df_target_labels=df_target_labels,
+                                   label=label,
+                                   features=features,
+                                   classifier=classifier,
+                                   done_tests=done_tests)
 
 
 def test_for_source(source_dataset, source_device):
@@ -402,7 +405,6 @@ if __name__ == "__main__":
 
         test_for_source_dataset(source_dataset=source_dataset)
 
-
     # started with source dataset and device
     elif len(sys.argv) == 3:
         source_dataset = sys.argv[1]
@@ -414,16 +416,15 @@ if __name__ == "__main__":
         test_for_source(source_dataset=source_dataset,
                         source_device=source_device)
 
-
     # started with source and target dataset and device
     elif len(sys.argv) == 5:
         source_dataset, source_device, target_dataset, \
-        target_device = sys.argv[1:5]
+            target_device = sys.argv[1:5]
 
         test_for_source_and_target(source_dataset=source_dataset,
-                source_device=source_device,
-                target_dataset=target_dataset,
-                target_device=target_device)
+                                   source_device=source_device,
+                                   target_dataset=target_dataset,
+                                   target_device=target_device)
 
     else:
         print('Wrong number of arguments')
