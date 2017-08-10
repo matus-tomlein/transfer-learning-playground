@@ -314,6 +314,18 @@ class TestSet:
     def exists(self):
         return os.path.isfile(self.file_name)
 
+    def map_results(self, mapper):
+        input = open(self.file_name, 'rb')
+        results = []
+        try:
+            while True:
+                results.append(self.__map_input(input, mapper))
+
+        except (EOFError) as e:
+            input.close()
+
+        return results
+
     def get_results(self):
         input = open(self.file_name, 'rb')
         results = []
@@ -326,3 +338,7 @@ class TestSet:
             input.close()
 
         return results
+
+    def __map_input(self, input, mapper):
+        result = pickle.load(input)
+        return mapper(result)

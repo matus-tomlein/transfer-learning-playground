@@ -199,6 +199,9 @@ def test_with_transfer(target_dataset, target_device,
         print('Label not in target')
         return
 
+    if key in done_tests:
+        print('Repetition', str(done_tests[key] + 1))
+
     c1 = df_source.filter(regex=features).columns.tolist()
     c2 = df_target.filter(regex=features).columns.tolist()
     columns = [i for i in c1 if i in c2]
