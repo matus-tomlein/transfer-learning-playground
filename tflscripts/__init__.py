@@ -10,3 +10,4 @@ from .configuration import *
 from .features import *
 from .datasets import *
 from .anomalies import *
+from .test_result_statistics import *
